@@ -1,0 +1,33 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #15191e;
+    font-family: Arial, sans-serif;
+}
+
+#header {
+    height: 45px;
+    background: #20262d;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #343b44;
+}
+
+#map {
+    height: calc(100vh - 45px);
+    width: 100%;
+    background: #20262d;
+}
+
+.leaflet-container {
+    background: #20262d;
+}
