@@ -1,3 +1,4 @@
+
 // Create map
 const map = L.map('map').setView([33.8, 35.8], 8);
 
@@ -19,25 +20,22 @@ fetch('./frontline.geojson')
 
         const frontline = L.geoJSON(data, {
 
+            // Read colors directly from GeoJSON properties
             style: function(feature) {
-                const geometry = feature.geometry.type;
 
-                if (geometry.includes('Polygon')) {
-                    return {
-                        color: '#ff3333',
-                        weight: 2,
-                        fillColor: '#ff3333',
-                        fillOpacity: 0.3
-                    };
-                }
+                const properties = feature.properties || {};
 
                 return {
-                    color: '#ff3333',
-                    weight: 3
+                    color: properties.stroke || '#ff3333',
+                    weight: 3,
+                    fillColor: properties.fill || '#ff3333',
+                    fillOpacity: properties['fill-opacity'] ?? 0.3
                 };
             },
 
+            // Display feature names when clicking
             onEachFeature: function(feature, layer) {
+
                 const properties = feature.properties || {};
                 const name = properties.name || properties.Name;
 

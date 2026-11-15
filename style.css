@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -10,20 +11,27 @@ body {
 }
 
 #header {
-    height: 45px;
+    height: 65px;
     background: #20262d;
     color: white;
     display: flex;
     align-items: center;
-    padding-left: 20px;
-    font-size: 14px;
+    padding-left: 18px;
+    gap: 16px;
+    font-size: 19px;
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 2.5px;
     border-bottom: 1px solid #343b44;
 }
 
+#emblem {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+}
+
 #map {
-    height: calc(100vh - 45px);
+    height: calc(100vh - 65px);
     width: 100%;
     background: #20262d;
 }
