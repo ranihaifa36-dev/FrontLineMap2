@@ -3,9 +3,11 @@
 // SUPABASE CONFIGURATION
 // ========================================
 
-const SUPABASE_URL = 'https://qeiospslkykwdrbgflzb.supabase.co';
+const SUPABASE_URL =
+    'https://qeiospslkykwdrbgflzb.supabase.co';
 
-const SUPABASE_KEY = 'sb_publishable_HuG7VQQDL5hbhM3zwvOJIA_w0sE5H1V';
+const SUPABASE_KEY =
+    'sb_publishable_HuG7VQQDL5hbhM3zwvOJIA_w0sE5H1V';
 
 const db = window.supabase.createClient(
     SUPABASE_URL,
@@ -19,8 +21,6 @@ const db = window.supabase.createClient(
 
 const map = L.map('map').setView([33.8, 35.8], 8);
 
-
-// Add geographic background
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors'
@@ -79,6 +79,102 @@ fetch('./frontline.geojson')
 
 
 // ========================================
+// IMAGE LIGHTBOX
+// ========================================
+
+const lightbox = document.createElement('div');
+
+lightbox.id = 'image-lightbox';
+lightbox.setAttribute('role', 'dialog');
+lightbox.setAttribute('aria-modal', 'true');
+lightbox.setAttribute('aria-label', 'Image viewer');
+
+const lightboxImage = document.createElement('img');
+
+lightboxImage.id = 'lightbox-image';
+lightboxImage.alt = '';
+
+const closeButton = document.createElement('button');
+
+closeButton.id = 'lightbox-close';
+closeButton.type = 'button';
+closeButton.textContent = '×';
+closeButton.setAttribute('aria-label', 'Close image viewer');
+
+const lightboxHint = document.createElement('div');
+
+lightboxHint.id = 'lightbox-hint';
+lightboxHint.textContent = 'Press ESC or click outside the image to close';
+
+lightbox.appendChild(lightboxImage);
+lightbox.appendChild(closeButton);
+lightbox.appendChild(lightboxHint);
+
+document.body.appendChild(lightbox);
+
+
+// Open image
+
+function openImageViewer(src, alt) {
+
+    lightboxImage.src = src;
+    lightboxImage.alt = alt || 'News image';
+
+    lightbox.classList.add('active');
+
+    document.body.style.overflow = 'hidden';
+
+    closeButton.focus();
+}
+
+
+// Close image
+
+function closeImageViewer() {
+
+    lightbox.classList.remove('active');
+
+    lightboxImage.removeAttribute('src');
+
+    document.body.style.overflow = '';
+
+}
+
+
+// Close button
+
+closeButton.addEventListener('click', closeImageViewer);
+
+
+// Close when clicking outside the image
+
+lightbox.addEventListener('click', function(event) {
+
+    if (
+        event.target === lightbox ||
+        event.target === lightboxHint
+    ) {
+        closeImageViewer();
+    }
+
+});
+
+
+// Close with ESC
+
+document.addEventListener('keydown', function(event) {
+
+    if (
+        event.key === 'Escape' &&
+        lightbox.classList.contains('active')
+    ) {
+        closeImageViewer();
+    }
+
+});
+
+
+// ========================================
 // NEWS FEED
 // ========================================
 
@@ -99,6 +195,10 @@ function showNewsStatus(message) {
 }
 
 
+// ========================================
+// FORMAT DATE
+// ========================================
+
 function formatNewsDate(dateString) {
 
     if (!dateString) {
@@ -118,6 +218,7 @@ function formatNewsDate(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+
 }
 
 
@@ -139,20 +240,27 @@ function displayNews(newsItems) {
         const card = document.createElement('article');
         card.className = 'news-card';
 
-        // Date
+
+        // DATE
+
         const date = document.createElement('div');
         date.className = 'news-date';
         date.textContent = formatNewsDate(news.created_at);
 
-        // Title
+
+        // TITLE
+
         const title = document.createElement('h3');
         title.className = 'news-title';
         title.textContent = news.title || 'Untitled news';
 
+
         card.appendChild(date);
         card.appendChild(title);
 
-        // Optional image
+
+        // IMAGE
+
         if (news.image_url) {
 
             const image = document.createElement('img');
@@ -162,19 +270,36 @@ function displayNews(newsItems) {
             image.alt = news.title || 'News image';
             image.loading = 'lazy';
 
+            // Open full-size image on click
+
+            image.addEventListener('click', function() {
+
+                openImageViewer(
+                    news.image_url,
+                    news.title
+                );
+
+            });
+
+            // Hide image if it cannot be loaded
+
             image.addEventListener('error', function() {
                 image.remove();
             });
 
             card.appendChild(image);
+
         }
 
-        // Content
+
+        // CONTENT
+
         const content = document.createElement('div');
         content.className = 'news-content';
         content.textContent = news.content || '';
 
         card.appendChild(content);
+
 
         newsList.appendChild(card);
 
@@ -219,8 +344,8 @@ async function loadNews() {
         message.textContent = 'Could not load news: ' + error.message;
 
         const retryButton = document.createElement('button');
-        retryButton.textContent = 'TRY AGAIN';
 
+        retryButton.textContent = 'TRY AGAIN';
         retryButton.style.marginTop = '12px';
         retryButton.style.padding = '8px 14px';
         retryButton.style.background = '#344b60';
@@ -252,10 +377,8 @@ loadNews();
 
 
 // ========================================
-// AUTOMATIC NEWS UPDATES
+// REALTIME NEWS UPDATES
 // ========================================
-
-// Realtime updates when Supabase Realtime is enabled.
 
 db
     .channel('public-news-feed')
@@ -273,7 +396,6 @@ db
     .subscribe();
 
 
-// Backup refresh every 60 seconds.
-// This also works if Realtime is not enabled.
+// Backup refresh every 60 seconds
 
 setInterval(loadNews, 60000);
