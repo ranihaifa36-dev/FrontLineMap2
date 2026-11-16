@@ -1,0 +1,832 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Panel | Frontline Map</title>
+
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #15191e;
+            color: #e8edf2;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            height: 65px;
+            background: #20262d;
+            border-bottom: 1px solid #343b44;
+            display: flex;
+            align-items: center;
+            padding: 0 22px;
+            gap: 14px;
+        }
+
+        header img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        header h1 {
+            font-size: 15px;
+            letter-spacing: 2px;
+            flex: 1;
+        }
+
+        a {
+            color: #b5c2ce;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 35px auto;
+            padding: 0 20px 40px;
+        }
+
+        .panel {
+            background: #20262d;
+            border: 1px solid #343b44;
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 22px;
+        }
+
+        h2 {
+            font-size: 17px;
+            letter-spacing: 1.5px;
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            color: #aab5c0;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        input, textarea {
+            width: 100%;
+            background: #151a20;
+            border: 1px solid #3b4652;
+            border-radius: 3px;
+            padding: 12px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #8296aa;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        button {
+            background: #344b60;
+            color: white;
+            border: 1px solid #526a80;
+            border-radius: 3px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background: #405e78;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .danger {
+            background: #702f32;
+            border-color: #914447;
+        }
+
+        .danger:hover {
+            background: #913b40;
+        }
+
+        .secondary {
+            background: #303943;
+            border-color: #4b5866;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #login-section {
+            max-width: 430px;
+            margin: 70px auto;
+        }
+
+        #dashboard {
+            display: none;
+        }
+
+        #status {
+            font-size: 12px;
+            color: #aebdca;
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+
+        .admin-news-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #39434e;
+        }
+
+        .admin-news-item:last-child {
+            border-bottom: none;
+        }
+
+        .admin-news-item h3 {
+            font-size: 14px;
+            margin-bottom: 7px;
+        }
+
+        .admin-news-item p {
+            color: #9ba8b5;
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .admin-news-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .admin-news-actions button {
+            padding: 8px 12px;
+            font-size: 11px;
+        }
+
+        #preview {
+            max-width: 100%;
+            max-height: 220px;
+            display: none;
+            margin: 0 0 18px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                margin-top: 20px;
+                padding: 0 12px 30px;
+            }
+
+            .panel {
+                padding: 17px;
+            }
+
+            header h1 {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <img src="emblem.png" alt="Empire Emblem">
+    <h1>FRONTLINE MAP — ADMINISTRATION</h1>
+    <a href="index.html">BACK TO MAP</a>
+</header>
+
+<main>
+
+    <!-- LOGIN -->
+
+    <section id="login-section" class="panel">
+
+        <h2>ADMIN LOGIN</h2>
+
+        <form id="login-form">
+
+            <label for="email">Email</label>
+            <input
+                type="email"
+                id="email"
+                required
+                autocomplete="username"
+                placeholder="Admin email"
+            >
+
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                required
+                autocomplete="current-password"
+                placeholder="Admin password"
+            >
+
+            <button type="submit" id="login-button">
+                LOGIN
+            </button>
+
+        </form>
+
+        <div id="login-status" role="status"></div>
+
+    </section>
+
+
+    <!-- ADMIN DASHBOARD -->
+
+    <section id="dashboard">
+
+        <div class="panel">
+
+            <h2 id="form-heading">CREATE NEWS</h2>
+
+            <form id="news-form">
+
+                <label for="news-title">News title</label>
+
+                <input
+                    type="text"
+                    id="news-title"
+                    maxlength="200"
+                    required
+                    placeholder="Enter news title..."
+                >
+
+                <label for="news-content">News content</label>
+
+                <textarea
+                    id="news-content"
+                    maxlength="10000"
+                    required
+                    placeholder="Write your news..."
+                ></textarea>
+
+                <label for="news-image">
+                    Image (optional)
+                </label>
+
+                <input
+                    type="file"
+                    id="news-image"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                >
+
+                <img id="preview" alt="Image preview">
+
+                <div class="form-buttons">
+
+                    <button type="submit" id="publish-button">
+                        PUBLISH NEWS
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary"
+                        id="cancel-edit"
+                        style="display:none"
+                    >
+                        CANCEL EDIT
+                    </button>
+
+                </div>
+
+            </form>
+
+            <div id="status" role="status"></div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <h2>PUBLISHED NEWS</h2>
+
+            <div id="admin-news-list">
+                Loading...
+            </div>
+
+        </div>
+
+        <button class="danger" id="logout-button">
+            LOG OUT
+        </button>
+
+    </section>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+// ========================================
+// SUPABASE CONFIGURATION
+// ========================================
+
+const SUPABASE_URL =
+    'https://qeiospslkykwdrbgflzb.supabase.co';
+
+const SUPABASE_KEY =
+    'sb_publishable_HuG7VQQDL5hbhM3zwvOJIA_w0sE5H1V';
+
+const ADMIN_UID =
+    '7a1279bc-f6d1-4b98-adf8-b230cd007066';
+
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+// ========================================
+// ELEMENTS
+// ========================================
+
+const loginSection = document.getElementById('login-section');
+const dashboard = document.getElementById('dashboard');
+
+const loginForm = document.getElementById('login-form');
+const loginStatus = document.getElementById('login-status');
+
+const newsForm = document.getElementById('news-form');
+const newsTitle = document.getElementById('news-title');
+const newsContent = document.getElementById('news-content');
+const newsImage = document.getElementById('news-image');
+
+const preview = document.getElementById('preview');
+const status = document.getElementById('status');
+
+const adminNewsList =
+    document.getElementById('admin-news-list');
+
+const publishButton =
+    document.getElementById('publish-button');
+
+const cancelEdit =
+    document.getElementById('cancel-edit');
+
+let editingId = null;
+let existingImageUrl = null;
+
+
+// ========================================
+// AUTHENTICATION
+// ========================================
+
+async function checkAdmin() {
+
+    const { data, error } = await db.auth.getSession();
+
+    if (error) {
+        console.error(error);
+    }
+
+    const user = data.session?.user;
+
+    if (!user || user.id !== ADMIN_UID) {
+
+        await db.auth.signOut();
+
+        loginSection.style.display = 'block';
+        dashboard.style.display = 'none';
+
+        return;
+
+    }
+
+    loginSection.style.display = 'none';
+    dashboard.style.display = 'block';
+
+    loadAdminNews();
+
+}
+
+
+// LOGIN
+
+loginForm.addEventListener('submit', async function(event) {
+
+    event.preventDefault();
+
+    loginStatus.textContent = 'Logging in...';
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await db.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+
+        loginStatus.textContent = error.message;
+        return;
+
+    }
+
+    if (data.user.id !== ADMIN_UID) {
+
+        await db.auth.signOut();
+
+        loginStatus.textContent =
+            'Access denied. This account is not an administrator.';
+
+        return;
+
+    }
+
+    loginStatus.textContent = '';
+
+    checkAdmin();
+
+});
+
+
+// LOGOUT
+
+document.getElementById('logout-button')
+    .addEventListener('click', async function() {
+
+        await db.auth.signOut();
+
+        location.reload();
+
+    });
+
+
+// ========================================
+// IMAGE PREVIEW
+// ========================================
+
+newsImage.addEventListener('change', function() {
+
+    const file = newsImage.files[0];
+
+    if (!file) {
+
+        preview.style.display = 'none';
+        preview.removeAttribute('src');
+
+        return;
+
+    }
+
+    if (!file.type.startsWith('image/')) {
+
+        alert('Please select an image.');
+        newsImage.value = '';
+        return;
+
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+
+        alert('Image must be smaller than 8 MB.');
+        newsImage.value = '';
+        return;
+
+    }
+
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+
+});
+
+
+// ========================================
+// UPLOAD IMAGE
+// ========================================
+
+async function uploadImage(file) {
+
+    if (!file) {
+        return existingImageUrl;
+    }
+
+    const extension =
+        file.name.split('.').pop().toLowerCase();
+
+    const filePath =
+        `${crypto.randomUUID()}.${extension}`;
+
+    const { error } = await db.storage
+        .from('news-images')
+        .upload(filePath, file, {
+            contentType: file.type,
+            upsert: false
+        });
+
+    if (error) {
+        throw error;
+    }
+
+    const { data } = db.storage
+        .from('news-images')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+
+}
+
+
+// ========================================
+// PUBLISH OR UPDATE NEWS
+// ========================================
+
+newsForm.addEventListener('submit', async function(event) {
+
+    event.preventDefault();
+
+    const title = newsTitle.value.trim();
+    const content = newsContent.value.trim();
+    const imageFile = newsImage.files[0];
+
+    if (!title || !content) {
+        status.textContent = 'Please complete all required fields.';
+        return;
+    }
+
+    if (imageFile && (
+        !imageFile.type.startsWith('image/') ||
+        imageFile.size > 8 * 1024 * 1024
+    )) {
+        status.textContent = 'Invalid image or image exceeds 8 MB.';
+        return;
+    }
+
+    publishButton.disabled = true;
+    status.textContent = 'Publishing...';
+
+    try {
+
+        const imageUrl = await uploadImage(imageFile);
+
+        let result;
+
+        if (editingId) {
+
+            result = await db
+                .from('news')
+                .update({
+                    title: title,
+                    content: content,
+                    image_url: imageUrl
+                })
+                .eq('id', editingId);
+
+        } else {
+
+            result = await db
+                .from('news')
+                .insert({
+                    title: title,
+                    content: content,
+                    image_url: imageUrl
+                });
+
+        }
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        status.textContent =
+            editingId ? 'News updated successfully!' :
+            'News published successfully!';
+
+        resetForm();
+
+        await loadAdminNews();
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            'Error: ' + error.message;
+
+    } finally {
+
+        publishButton.disabled = false;
+
+    }
+
+});
+
+
+// ========================================
+// RESET FORM
+// ========================================
+
+function resetForm() {
+
+    newsForm.reset();
+
+    editingId = null;
+    existingImageUrl = null;
+
+    preview.style.display = 'none';
+    preview.removeAttribute('src');
+
+    document.getElementById('form-heading').textContent =
+        'CREATE NEWS';
+
+    publishButton.textContent = 'PUBLISH NEWS';
+
+    cancelEdit.style.display = 'none';
+
+}
+
+
+// CANCEL EDIT
+
+cancelEdit.addEventListener('click', function() {
+
+    resetForm();
+    status.textContent = '';
+
+});
+
+
+// ========================================
+// LOAD ADMIN NEWS
+// ========================================
+
+async function loadAdminNews() {
+
+    adminNewsList.textContent = 'Loading...';
+
+    const { data, error } = await db
+        .from('news')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+
+        adminNewsList.textContent =
+            'Could not load news: ' + error.message;
+
+        return;
+
+    }
+
+    adminNewsList.innerHTML = '';
+
+    if (!data || data.length === 0) {
+
+        adminNewsList.textContent =
+            'No published news yet.';
+
+        return;
+
+    }
+
+    data.forEach(news => {
+
+        const item = document.createElement('div');
+        item.className = 'admin-news-item';
+
+        const title = document.createElement('h3');
+        title.textContent = news.title;
+
+        const date = document.createElement('p');
+        date.textContent =
+            new Date(news.created_at).toLocaleString();
+
+        const actions = document.createElement('div');
+        actions.className = 'admin-news-actions';
+
+        const editButton = document.createElement('button');
+        editButton.className = 'secondary';
+        editButton.textContent = 'EDIT';
+
+        editButton.addEventListener('click', function() {
+
+            editingId = news.id;
+            existingImageUrl = news.image_url;
+
+            newsTitle.value = news.title;
+            newsContent.value = news.content;
+
+            newsImage.value = '';
+
+            if (news.image_url) {
+
+                preview.src = news.image_url;
+                preview.style.display = 'block';
+
+            } else {
+
+                preview.style.display = 'none';
+
+            }
+
+            document.getElementById('form-heading')
+                .textContent = 'EDIT NEWS';
+
+            publishButton.textContent = 'SAVE CHANGES';
+
+            cancelEdit.style.display = 'inline-block';
+
+            status.textContent = '';
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'danger';
+        deleteButton.textContent = 'DELETE';
+
+        deleteButton.addEventListener('click', async function() {
+
+            if (!confirm(`Delete "${news.title}"?`)) {
+                return;
+            }
+
+            deleteButton.disabled = true;
+
+            const { error } = await db
+                .from('news')
+                .delete()
+                .eq('id', news.id);
+
+            if (error) {
+
+                alert('Could not delete news: ' + error.message);
+
+                deleteButton.disabled = false;
+                return;
+
+            }
+
+            if (editingId === news.id) {
+                resetForm();
+            }
+
+            await loadAdminNews();
+
+        });
+
+        actions.appendChild(editButton);
+        actions.appendChild(deleteButton);
+
+        item.appendChild(title);
+        item.appendChild(date);
+        item.appendChild(actions);
+
+        adminNewsList.appendChild(item);
+
+    });
+
+}
+
+
+// ========================================
+// INITIALIZE
+// ========================================
+
+checkAdmin();
+
+</script>
+
+</body>
+</html>

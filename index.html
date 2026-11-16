@@ -7,29 +7,56 @@
 
     <title>Kiryat Eliezer Empire</title>
 
-    <!-- Website Icon (Favicon) -->
     <link rel="icon" type="image/png" href="favicon.png">
-
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
 
     <div id="header">
         <img src="emblem.png" id="emblem" alt="Empire Emblem">
-        <span>KIRYAT ELIEZER EMPIRE</span>
+
+        <span id="site-title">KIRYAT ELIEZER EMPIRE</span>
+
+        <a href="admin.html" id="admin-link" title="Admin panel">
+            <span>ADMIN</span>
+        </a>
     </div>
 
-    <div id="map"></div>
+    <main id="main-layout">
 
-    <!-- Leaflet JS -->
+        <section id="map-container">
+            <div id="map"></div>
+        </section>
+
+        <aside id="news-panel">
+
+            <div id="news-header">
+                <div>
+                    <h2>NEWS FEED</h2>
+                    <span id="news-subtitle">LATEST DEVELOPMENTS</span>
+                </div>
+
+                <span id="news-live">LIVE</span>
+            </div>
+
+            <div id="news-list">
+                <div class="news-status">
+                    Loading news...
+                </div>
+            </div>
+
+        </aside>
+
+    </main>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Main JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script src="script.js"></script>
 
 </body>
