@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>About Us | Kiryat Eliezer Empire</title>
+
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #15191e;
+            color: #e8edf2;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            min-height: 65px;
+            background: #20262d;
+            border-bottom: 1px solid #343b44;
+            display: flex;
+            align-items: center;
+            padding: 10px 22px;
+            gap: 14px;
+        }
+
+        header img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        header h1 {
+            flex: 1;
+            font-size: 15px;
+            letter-spacing: 2px;
+        }
+
+        header a {
+            color: #b5c2ce;
+            text-decoration: none;
+            font-size: 11px;
+            letter-spacing: 1px;
+            border: 1px solid #48525e;
+            padding: 9px 13px;
+            border-radius: 3px;
+        }
+
+        header a:hover {
+            background: #343d47;
+            color: white;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 65px 20px 55px;
+            background: linear-gradient(180deg, #202832, #15191e);
+            border-bottom: 1px solid #343b44;
+        }
+
+        .hero h2 {
+            font-size: 30px;
+            letter-spacing: 4px;
+            margin-bottom: 14px;
+        }
+
+        .hero-subtitle {
+            color: #9ba8b5;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        /* FICTION DISCLAIMER */
+
+        .fiction-disclaimer {
+            color: #77818d;
+            font-size: 11px;
+            line-height: 1.6;
+            font-style: italic;
+            max-width: 650px;
+            margin: 13px auto 0;
+            padding: 0 10px;
+            text-align: center;
+            letter-spacing: 0.2px;
+        }
+
+        main {
+            max-width: 950px;
+            margin: 35px auto;
+            padding: 0 20px 50px;
+        }
+
+        #chapters {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .chapter {
+            background: #20262d;
+            border: 1px solid #343b44;
+            border-radius: 4px;
+            padding: 27px;
+        }
+
+        .chapter-number {
+            color: #8296aa;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .chapter h2 {
+            font-size: 21px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .chapter-content {
+            color: #c2cbd4;
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .chapter-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .chapter-images img {
+            width: 100%;
+            height: 220px;
+            object-fit: contain;
+            background: #15191e;
+            border: 1px solid #39434e;
+            border-radius: 3px;
+            cursor: zoom-in;
+        }
+
+        .chapter-images img:hover {
+            opacity: 0.85;
+        }
+
+        #chapters-status {
+            text-align: center;
+            color: #9ba8b5;
+            padding: 40px 15px;
+            font-size: 13px;
+        }
+
+        footer {
+            border-top: 1px solid #343b44;
+            text-align: center;
+            padding: 22px;
+            color: #71808e;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            padding: 50px 20px;
+        }
+
+        #lightbox.active {
+            display: flex;
+        }
+
+        #lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        #lightbox button {
+            position: absolute;
+            top: 12px;
+            right: 22px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 38px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 10px;
+                gap: 9px;
+            }
+
+            header h1 {
+                font-size: 10px;
+                letter-spacing: 1px;
+            }
+
+            header a {
+                font-size: 9px;
+                padding: 7px;
+            }
+
+            .hero h2 {
+                font-size: 23px;
+            }
+
+            .hero {
+                padding: 50px 15px 40px;
+            }
+
+            .fiction-disclaimer {
+                font-size: 10px;
+                max-width: 450px;
+            }
+
+            .chapter {
+                padding: 19px;
+            }
+
+            .chapter h2 {
+                font-size: 18px;
+            }
+
+            .chapter-images {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <img src="emblem.png" alt="Empire Emblem">
+
+        <h1>KIRYAT ELIEZER EMPIRE</h1>
+
+        <a href="index.html">BACK TO MAP</a>
+    </header>
+
+    <section class="hero">
+        <h2>ABOUT US</h2>
+
+        <p class="hero-subtitle">
+            THE HISTORY OF KIRYAT ELIEZER EMPIRE
+        </p>
+
+        <p class="fiction-disclaimer">
+            The Kiryat Eliezer Empire is entirely fictional.
+            All news, events, borders and historical accounts presented
+            on this website are imaginary and created for entertainment purposes only.
+        </p>
+    </section>
+
+    <main>
+        <div id="chapters">
+            <div id="chapters-status">
+                Loading history...
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        KIRYAT ELIEZER EMPIRE
+    </footer>
+
+    <div id="lightbox">
+        <button id="lightbox-close" aria-label="Close">×</button>
+        <img id="lightbox-image" alt="Chapter image">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="about.js"></script>
+
+</body>
+</html>

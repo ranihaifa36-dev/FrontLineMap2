@@ -201,6 +201,86 @@
             border-radius: 3px;
         }
 
+
+        /* ABOUT US CHAPTER MANAGEMENT */
+
+        .chapter-admin-item {
+            padding: 18px 0;
+            border-bottom: 1px solid #39434e;
+        }
+
+        .chapter-admin-item:last-child {
+            border-bottom: none;
+        }
+
+        .chapter-admin-item h3 {
+            font-size: 15px;
+            margin-bottom: 7px;
+        }
+
+        .chapter-admin-item p {
+            color: #9ba8b5;
+            font-size: 11px;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+        }
+
+        .chapter-admin-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .chapter-admin-actions button {
+            padding: 8px 12px;
+            font-size: 11px;
+        }
+
+        .chapter-image-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .chapter-image-item {
+            width: 125px;
+            background: #151a20;
+            border: 1px solid #3b4652;
+            padding: 7px;
+            border-radius: 3px;
+        }
+
+        .chapter-image-item img {
+            width: 100%;
+            height: 85px;
+            object-fit: contain;
+            display: block;
+            margin-bottom: 7px;
+            background: #0f1317;
+        }
+
+        .chapter-image-item button {
+            width: 100%;
+            padding: 7px 5px;
+            font-size: 10px;
+        }
+
+        .chapter-help {
+            color: #84909d;
+            font-size: 11px;
+            line-height: 1.5;
+            margin: -8px 0 16px;
+        }
+
+        .chapter-status {
+            color: #aebdca;
+            font-size: 12px;
+            margin-top: 12px;
+            white-space: pre-wrap;
+        }
+
         @media (max-width: 600px) {
             main {
                 margin-top: 20px;
@@ -340,6 +420,75 @@
 
         </div>
 
+
+        <!-- ABOUT US CHAPTER MANAGEMENT -->
+
+        <div class="panel">
+
+            <h2 id="chapter-form-heading">CREATE HISTORY CHAPTER</h2>
+
+            <form id="chapter-form">
+
+                <label for="chapter-title">Chapter title</label>
+                <input
+                    type="text"
+                    id="chapter-title"
+                    maxlength="200"
+                    required
+                    placeholder="Enter chapter title..."
+                >
+
+                <label for="chapter-content">Chapter content</label>
+                <textarea
+                    id="chapter-content"
+                    maxlength="30000"
+                    placeholder="Write the history of this chapter..."
+                ></textarea>
+
+                <label for="chapter-images">Chapter photos</label>
+                <input
+                    type="file"
+                    id="chapter-images"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                >
+
+                <div class="chapter-help">
+                    You can select several photos at once. Each image must be 8 MB or smaller.
+                    When editing a chapter, newly selected photos will be added to its existing photos.
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" id="save-chapter-button">
+                        PUBLISH CHAPTER
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary"
+                        id="cancel-chapter-edit"
+                        style="display:none"
+                    >
+                        CANCEL EDIT
+                    </button>
+                </div>
+
+            </form>
+
+            <div id="chapter-status" class="chapter-status" role="status"></div>
+
+        </div>
+
+        <div class="panel">
+
+            <h2>PUBLISHED HISTORY CHAPTERS</h2>
+
+            <div id="admin-chapters-list">
+                Loading chapters...
+            </div>
+
+        </div>
+
         <button class="danger" id="logout-button">
             LOG OUT
         </button>
@@ -399,8 +548,21 @@ const publishButton =
 const cancelEdit =
     document.getElementById('cancel-edit');
 
+
 let editingId = null;
 let existingImageUrl = null;
+
+const chapterForm = document.getElementById('chapter-form');
+const chapterTitle = document.getElementById('chapter-title');
+const chapterContent = document.getElementById('chapter-content');
+const chapterImagesInput = document.getElementById('chapter-images');
+const chapterStatus = document.getElementById('chapter-status');
+const adminChaptersList = document.getElementById('admin-chapters-list');
+const saveChapterButton = document.getElementById('save-chapter-button');
+const cancelChapterEdit = document.getElementById('cancel-chapter-edit');
+
+let editingChapterId = null;
+
 
 
 // ========================================
@@ -432,6 +594,7 @@ async function checkAdmin() {
     dashboard.style.display = 'block';
 
     loadAdminNews();
+    loadAdminChapters();
 
 }
 
@@ -817,6 +980,427 @@ async function loadAdminNews() {
 
     });
 
+}
+
+
+
+// ========================================
+// ABOUT US: CHAPTER MANAGEMENT
+// ========================================
+
+function resetChapterForm() {
+    chapterForm.reset();
+    editingChapterId = null;
+
+    document.getElementById('chapter-form-heading').textContent =
+        'CREATE HISTORY CHAPTER';
+
+    saveChapterButton.textContent = 'PUBLISH CHAPTER';
+    cancelChapterEdit.style.display = 'none';
+    chapterStatus.textContent = '';
+}
+
+cancelChapterEdit.addEventListener('click', resetChapterForm);
+
+
+// Upload all selected chapter photos to the chapter-images bucket.
+async function uploadChapterImages(files, chapterId) {
+    const uploadedRows = [];
+
+    for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+            throw new Error(`"${file.name}" is not a supported image.`);
+        }
+
+        if (file.size > 8 * 1024 * 1024) {
+            throw new Error(`"${file.name}" is larger than 8 MB.`);
+        }
+
+        const extension = file.name.includes('.')
+            ? file.name.split('.').pop().toLowerCase()
+            : 'jpg';
+
+        const storagePath =
+            `${chapterId}/${crypto.randomUUID()}.${extension}`;
+
+        const { error: uploadError } = await db.storage
+            .from('chapter-images')
+            .upload(storagePath, file, {
+                contentType: file.type,
+                upsert: false
+            });
+
+        if (uploadError) {
+            throw uploadError;
+        }
+
+        const { data: publicUrlData } = db.storage
+            .from('chapter-images')
+            .getPublicUrl(storagePath);
+
+        uploadedRows.push({
+            chapter_id: chapterId,
+            image_url: publicUrlData.publicUrl,
+            storage_path: storagePath
+        });
+    }
+
+    if (uploadedRows.length > 0) {
+        const { error: insertError } = await db
+            .from('chapter_images')
+            .insert(uploadedRows);
+
+        if (insertError) {
+            // Remove the files just uploaded if their database records failed.
+            await db.storage
+                .from('chapter-images')
+                .remove(uploadedRows.map(row => row.storage_path));
+
+            throw insertError;
+        }
+    }
+}
+
+
+// Create a new chapter or update the chapter currently being edited.
+chapterForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const title = chapterTitle.value.trim();
+    const content = chapterContent.value.trim();
+    const files = Array.from(chapterImagesInput.files || []);
+
+    if (!title) {
+        chapterStatus.textContent = 'Please enter a chapter title.';
+        return;
+    }
+
+    for (const file of files) {
+        if (!file.type.startsWith('image/') ||
+            file.size > 8 * 1024 * 1024) {
+            chapterStatus.textContent =
+                `Invalid image: ${file.name}. Use an image no larger than 8 MB.`;
+            return;
+        }
+    }
+
+    saveChapterButton.disabled = true;
+    chapterStatus.textContent = 'Saving chapter...';
+
+    let chapterId = editingChapterId;
+    let createdNewChapter = false;
+
+    try {
+        if (editingChapterId) {
+            const { error } = await db
+                .from('chapters')
+                .update({
+                    title: title,
+                    content: content
+                })
+                .eq('id', editingChapterId);
+
+            if (error) throw error;
+        } else {
+            const { data: existingChapters, error: orderError } = await db
+                .from('chapters')
+                .select('sort_order')
+                .order('sort_order', { ascending: false })
+                .limit(1);
+
+            if (orderError) throw orderError;
+
+            const nextOrder = existingChapters && existingChapters.length
+                ? (existingChapters[0].sort_order || 0) + 1
+                : 0;
+
+            const { data, error } = await db
+                .from('chapters')
+                .insert({
+                    title: title,
+                    content: content,
+                    sort_order: nextOrder
+                })
+                .select('id')
+                .single();
+
+            if (error) throw error;
+
+            chapterId = data.id;
+            createdNewChapter = true;
+        }
+
+        await uploadChapterImages(files, chapterId);
+
+        chapterStatus.textContent = editingChapterId
+            ? 'Chapter updated successfully!'
+            : 'Chapter published successfully!';
+
+        resetChapterForm();
+        await loadAdminChapters();
+
+    } catch (error) {
+        console.error('Chapter save error:', error);
+
+        // If creation succeeded but image upload failed, keep the chapter record.
+        // It can be edited later and the photos can be uploaded again.
+        chapterStatus.textContent =
+            'Error: ' + error.message +
+            (createdNewChapter
+                ? '\nThe chapter itself was created. You can edit it and try uploading the photos again.'
+                : '');
+    } finally {
+        saveChapterButton.disabled = false;
+    }
+});
+
+
+// Load chapters and their photos for the admin list.
+async function loadAdminChapters() {
+    adminChaptersList.textContent = 'Loading chapters...';
+
+    try {
+        const { data: chapters, error: chaptersError } = await db
+            .from('chapters')
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        if (chaptersError) throw chaptersError;
+
+        if (!chapters || chapters.length === 0) {
+            adminChaptersList.textContent = 'No history chapters published yet.';
+            return;
+        }
+
+        const chapterIds = chapters.map(chapter => chapter.id);
+
+        const { data: images, error: imagesError } = await db
+            .from('chapter_images')
+            .select('*')
+            .in('chapter_id', chapterIds)
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        if (imagesError) throw imagesError;
+
+        renderAdminChapters(chapters, images || []);
+
+    } catch (error) {
+        console.error('Error loading chapters:', error);
+        adminChaptersList.textContent =
+            'Could not load chapters: ' + error.message;
+    }
+}
+
+
+function renderAdminChapters(chapters, images) {
+    adminChaptersList.replaceChildren();
+
+    chapters.forEach((chapter, index) => {
+        const item = document.createElement('div');
+        item.className = 'chapter-admin-item';
+
+        const title = document.createElement('h3');
+        title.textContent = `CHAPTER ${String(index + 1).padStart(2, '0')} — ${chapter.title}`;
+
+        const content = document.createElement('p');
+        const excerpt = chapter.content || '';
+        content.textContent = excerpt.length > 220
+            ? excerpt.slice(0, 220) + '...'
+            : excerpt;
+
+        const chapterImages = images.filter(
+            image => image.chapter_id === chapter.id
+        );
+
+        const imageList = document.createElement('div');
+        imageList.className = 'chapter-image-list';
+
+        chapterImages.forEach(imageData => {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'chapter-image-item';
+
+            const image = document.createElement('img');
+            image.src = imageData.image_url;
+            image.alt = chapter.title;
+            image.loading = 'lazy';
+
+            const deleteImageButton = document.createElement('button');
+            deleteImageButton.className = 'danger';
+            deleteImageButton.textContent = 'REMOVE PHOTO';
+
+            deleteImageButton.addEventListener('click', async function() {
+                if (!confirm('Remove this photo from the chapter?')) return;
+
+                deleteImageButton.disabled = true;
+
+                try {
+                    const { error: storageError } = await db.storage
+                        .from('chapter-images')
+                        .remove([imageData.storage_path]);
+
+                    if (storageError) throw storageError;
+
+                    const { error: rowError } = await db
+                        .from('chapter_images')
+                        .delete()
+                        .eq('id', imageData.id);
+
+                    if (rowError) throw rowError;
+
+                    await loadAdminChapters();
+                } catch (error) {
+                    alert('Could not remove photo: ' + error.message);
+                    deleteImageButton.disabled = false;
+                }
+            });
+
+            imageItem.appendChild(image);
+            imageItem.appendChild(deleteImageButton);
+            imageList.appendChild(imageItem);
+        });
+
+        const actions = document.createElement('div');
+        actions.className = 'chapter-admin-actions';
+
+        const editButton = document.createElement('button');
+        editButton.className = 'secondary';
+        editButton.textContent = 'EDIT';
+
+        editButton.addEventListener('click', function() {
+            editingChapterId = chapter.id;
+            chapterTitle.value = chapter.title || '';
+            chapterContent.value = chapter.content || '';
+            chapterImagesInput.value = '';
+
+            document.getElementById('chapter-form-heading').textContent =
+                'EDIT HISTORY CHAPTER';
+
+            saveChapterButton.textContent = 'SAVE CHANGES';
+            cancelChapterEdit.style.display = 'inline-block';
+            chapterStatus.textContent =
+                'Select additional photos if you want to add them. Existing photos are shown below.';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        const upButton = document.createElement('button');
+        upButton.className = 'secondary';
+        upButton.textContent = 'MOVE UP';
+        upButton.disabled = index === 0;
+        upButton.addEventListener('click', async function() {
+            await moveChapter(chapters, index, -1, upButton);
+        });
+
+        const downButton = document.createElement('button');
+        downButton.className = 'secondary';
+        downButton.textContent = 'MOVE DOWN';
+        downButton.disabled = index === chapters.length - 1;
+        downButton.addEventListener('click', async function() {
+            await moveChapter(chapters, index, 1, downButton);
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'danger';
+        deleteButton.textContent = 'DELETE';
+
+        deleteButton.addEventListener('click', async function() {
+            if (!confirm(`Delete chapter "${chapter.title}" and all its photos? This cannot be undone.`)) {
+                return;
+            }
+
+            deleteButton.disabled = true;
+
+            try {
+                const { data: chapterImageRows, error: fetchError } = await db
+                    .from('chapter_images')
+                    .select('storage_path')
+                    .eq('chapter_id', chapter.id);
+
+                if (fetchError) throw fetchError;
+
+                const paths = (chapterImageRows || [])
+                    .map(row => row.storage_path)
+                    .filter(Boolean);
+
+                if (paths.length > 0) {
+                    const { error: storageError } = await db.storage
+                        .from('chapter-images')
+                        .remove(paths);
+
+                    if (storageError) throw storageError;
+                }
+
+                const { error: deleteError } = await db
+                    .from('chapters')
+                    .delete()
+                    .eq('id', chapter.id);
+
+                if (deleteError) throw deleteError;
+
+                if (editingChapterId === chapter.id) {
+                    resetChapterForm();
+                }
+
+                await loadAdminChapters();
+
+            } catch (error) {
+                alert('Could not delete chapter: ' + error.message);
+                deleteButton.disabled = false;
+            }
+        });
+
+        actions.appendChild(editButton);
+        actions.appendChild(upButton);
+        actions.appendChild(downButton);
+        actions.appendChild(deleteButton);
+
+        item.appendChild(title);
+        item.appendChild(content);
+
+        if (chapterImages.length > 0) {
+            item.appendChild(imageList);
+        }
+
+        item.appendChild(actions);
+        adminChaptersList.appendChild(item);
+    });
+}
+
+
+// Reorder chapters by swapping their sort_order values.
+async function moveChapter(chapters, index, direction, button) {
+    const otherIndex = index + direction;
+
+    if (otherIndex < 0 || otherIndex >= chapters.length) return;
+
+    button.disabled = true;
+
+    const current = chapters[index];
+    const other = chapters[otherIndex];
+
+    try {
+        const { error: firstError } = await db
+            .from('chapters')
+            .update({ sort_order: other.sort_order })
+            .eq('id', current.id);
+
+        if (firstError) throw firstError;
+
+        const { error: secondError } = await db
+            .from('chapters')
+            .update({ sort_order: current.sort_order })
+            .eq('id', other.id);
+
+        if (secondError) throw secondError;
+
+        await loadAdminChapters();
+
+    } catch (error) {
+        alert('Could not change chapter order: ' + error.message);
+        await loadAdminChapters();
+    }
 }
 
 
