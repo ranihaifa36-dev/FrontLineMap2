@@ -33,7 +33,36 @@
     <main id="main-layout">
 
         <section id="map-container">
+            <div id="map-timeline">
+                <div class="map-timeline-heading">
+                    <span class="map-timeline-kicker">FRONTLINE ARCHIVE</span>
+                    <strong id="map-date-label">Loading map date...</strong>
+                </div>
+                <label for="map-date-select">VIEW MAP AS OF</label>
+                <select id="map-date-select" disabled>
+                    <option>Loading dates...</option>
+                </select>
+                <span id="map-archive-status" role="status">Loading map archive...</span>
+            </div>
             <div id="map"></div>
+            <div id="map-legend">
+    <div class="legend-title">MAP LEGEND</div>
+
+    <div class="legend-item">
+        <span class="legend-color legend-blue"></span>
+        <span>Empire Territories</span>
+    </div>
+
+    <div class="legend-item">
+        <span class="legend-color legend-red"></span>
+        <span>Territories captured in Operation Frozen Thunder</span>
+    </div>
+
+    <div class="legend-item">
+        <span class="legend-color legend-black"></span>
+        <span>Bronik Group</span>
+    </div>
+</div>
         </section>
 
         <aside id="news-panel">

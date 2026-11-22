@@ -28,54 +28,186 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 
 // ========================================
-// LOAD GEOJSON
+// FRONTLINE DATE ARCHIVE
 // ========================================
 
-fetch('./frontline.geojson')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('GeoJSON file not found');
-        }
+const mapDateSelect = document.getElementById('map-date-select');
+const mapDateLabel = document.getElementById('map-date-label');
+const mapArchiveStatus = document.getElementById('map-archive-status');
 
-        return response.json();
-    })
-    .then(data => {
+let frontlineLayer = null;
+let savedMapVersions = [];
 
-        const frontline = L.geoJSON(data, {
+function formatMapDate(dateString) {
+    const date = new Date(`${dateString}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return dateString;
 
-            style: function(feature) {
-
-                const properties = feature.properties || {};
-
-                return {
-                    color: properties.stroke || '#ff3333',
-                    weight: 3,
-                    fillColor: properties.fill || '#ff3333',
-                    fillOpacity: properties['fill-opacity'] ?? 0.3
-                };
-            },
-
-            onEachFeature: function(feature, layer) {
-
-                const properties = feature.properties || {};
-                const name = properties.name || properties.Name;
-
-                if (name) {
-                    layer.bindPopup(name);
-                }
-            }
-
-        }).addTo(map);
-
-        if (frontline.getBounds().isValid()) {
-            map.fitBounds(frontline.getBounds());
-        }
-
-    })
-    .catch(error => {
-        console.error('Error loading GeoJSON:', error);
-        alert('Could not load frontline.geojson');
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
+}
+
+function showMapArchiveStatus(message) {
+    if (mapArchiveStatus) {
+        mapArchiveStatus.textContent = message;
+    }
+}
+
+function renderFrontline(data) {
+    if (frontlineLayer) {
+        map.removeLayer(frontlineLayer);
+    }
+
+    frontlineLayer = L.geoJSON(data, {
+        style: function(feature) {
+            const properties = feature.properties || {};
+
+            return {
+                color: properties.stroke || '#ff3333',
+                weight: 3,
+                fillColor: properties.fill || '#ff3333',
+                fillOpacity: properties['fill-opacity'] ?? 0.3
+            };
+        },
+
+        onEachFeature: function(feature, layer) {
+            const properties = feature.properties || {};
+            const name = properties.name || properties.Name;
+
+            if (name) {
+                layer.bindPopup(name);
+            }
+        }
+    }).addTo(map);
+
+    const bounds = frontlineLayer.getBounds();
+
+    if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [20, 20] });
+    }
+}
+
+async function showSelectedMap() {
+    const selected = savedMapVersions.find(
+        item => item.id === mapDateSelect.value
+    );
+
+    if (!selected) return;
+
+    showMapArchiveStatus('Loading selected map...');
+    mapDateSelect.disabled = true;
+
+    try {
+        const { data, error } = await db.storage
+            .from('frontline-maps')
+            .download(selected.storage_path);
+
+        if (error) throw error;
+
+        const geojson = JSON.parse(await data.text());
+
+        if (
+            !geojson ||
+            geojson.type !== 'FeatureCollection' ||
+            !Array.isArray(geojson.features)
+        ) {
+            throw new Error(
+                'This file is not a valid GeoJSON FeatureCollection.'
+            );
+        }
+
+        renderFrontline(geojson);
+
+        mapDateLabel.textContent =
+            formatMapDate(selected.map_date);
+
+        showMapArchiveStatus(
+            `Showing ${formatMapDate(selected.map_date)}`
+        );
+
+    } catch (error) {
+        console.error(
+            'Could not load archived frontline map:',
+            error
+        );
+
+        showMapArchiveStatus(
+            'Could not load this map: ' + error.message
+        );
+
+    } finally {
+        mapDateSelect.disabled =
+            savedMapVersions.length === 0;
+    }
+}
+
+async function loadFrontlineArchive() {
+    try {
+        const { data, error } = await db
+            .from('frontline_maps')
+            .select('id, map_date, title, storage_path')
+            .order('map_date', { ascending: false });
+
+        if (error) throw error;
+
+        savedMapVersions = data || [];
+
+        mapDateSelect.replaceChildren();
+
+        if (savedMapVersions.length === 0) {
+            mapDateLabel.textContent = 'No map versions yet';
+
+            showMapArchiveStatus(
+                'Add map versions in the Admin panel.'
+            );
+
+            mapDateSelect.disabled = true;
+
+            const option = document.createElement('option');
+            option.textContent = 'No saved dates';
+
+            mapDateSelect.appendChild(option);
+
+            return;
+        }
+
+        savedMapVersions.forEach(version => {
+            const option = document.createElement('option');
+
+            option.value = version.id;
+            option.textContent = formatMapDate(version.map_date);
+
+            mapDateSelect.appendChild(option);
+        });
+
+        // Newest map is first because the query is descending.
+        mapDateSelect.value = savedMapVersions[0].id;
+
+        mapDateSelect.disabled = false;
+
+        await showSelectedMap();
+
+    } catch (error) {
+        console.error(
+            'Error loading frontline archive:',
+            error
+        );
+
+        mapDateLabel.textContent = 'Map archive unavailable';
+
+        showMapArchiveStatus(
+            'Could not load map dates: ' + error.message
+        );
+
+        mapDateSelect.disabled = true;
+    }
+}
+
+mapDateSelect.addEventListener('change', showSelectedMap);
+
+loadFrontlineArchive();
 
 
 // ========================================
@@ -104,7 +236,8 @@ closeButton.setAttribute('aria-label', 'Close image viewer');
 const lightboxHint = document.createElement('div');
 
 lightboxHint.id = 'lightbox-hint';
-lightboxHint.textContent = 'Press ESC or click outside the image to close';
+lightboxHint.textContent =
+    'Press ESC or click outside the image to close';
 
 lightbox.appendChild(lightboxImage);
 lightbox.appendChild(closeButton);
@@ -113,10 +246,7 @@ lightbox.appendChild(lightboxHint);
 document.body.appendChild(lightbox);
 
 
-// Open image
-
 function openImageViewer(src, alt) {
-
     lightboxImage.src = src;
     lightboxImage.alt = alt || 'News image';
 
@@ -127,67 +257,58 @@ function openImageViewer(src, alt) {
     closeButton.focus();
 }
 
-
-// Close image
-
 function closeImageViewer() {
-
     lightbox.classList.remove('active');
 
     lightboxImage.removeAttribute('src');
 
     document.body.style.overflow = '';
-
 }
-
-
-// Close button
 
 closeButton.addEventListener('click', closeImageViewer);
 
-
-// Close when clicking outside the image
-
 lightbox.addEventListener('click', function(event) {
-
     if (
         event.target === lightbox ||
         event.target === lightboxHint
     ) {
         closeImageViewer();
     }
-
 });
 
-
-// Close with ESC
-
 document.addEventListener('keydown', function(event) {
-
     if (
         event.key === 'Escape' &&
         lightbox.classList.contains('active')
     ) {
         closeImageViewer();
     }
-
 });
 
 
 // ========================================
-// NEWS FEED
+// NEWS FEED - PAGINATION
 // ========================================
 
 const newsList = document.getElementById('news-list');
 
-let isLoadingNews = false;
+const NEWS_PAGE_SIZE = 10;
 
+let isLoadingNews = false;
+let currentNewsOffset = 0;
+let hasMoreNews = true;
+let newsRefreshInProgress = false;
+
+
+// ========================================
+// NEWS STATUS
+// ========================================
 
 function showNewsStatus(message) {
-
     newsList.replaceChildren();
 
     const status = document.createElement('div');
+
     status.className = 'news-status';
     status.textContent = message;
 
@@ -200,7 +321,6 @@ function showNewsStatus(message) {
 // ========================================
 
 function formatNewsDate(dateString) {
-
     if (!dateString) {
         return '';
     }
@@ -218,93 +338,109 @@ function formatNewsDate(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
-
 }
 
 
 // ========================================
-// DISPLAY NEWS
+// CREATE NEWS CARD
 // ========================================
 
-function displayNews(newsItems) {
+function createNewsCard(news) {
+    const card = document.createElement('article');
 
-    newsList.replaceChildren();
+    card.className = 'news-card';
+    card.dataset.newsId = news.id;
 
-    if (!newsItems || newsItems.length === 0) {
-        showNewsStatus('No news published yet.');
-        return;
+
+    // DATE
+
+    const date = document.createElement('div');
+
+    date.className = 'news-date';
+    date.textContent = formatNewsDate(news.created_at);
+
+
+    // TITLE
+
+    const title = document.createElement('h3');
+
+    title.className = 'news-title';
+    title.textContent = news.title || 'Untitled news';
+
+
+    card.appendChild(date);
+    card.appendChild(title);
+
+
+    // IMAGE
+
+    if (news.image_url) {
+        const image = document.createElement('img');
+
+        image.className = 'news-image';
+        image.src = news.image_url;
+        image.alt = news.title || 'News image';
+        image.loading = 'lazy';
+
+        image.addEventListener('click', function() {
+            openImageViewer(
+                news.image_url,
+                news.title
+            );
+        });
+
+        image.addEventListener('error', function() {
+            image.remove();
+        });
+
+        card.appendChild(image);
     }
 
-    newsItems.forEach(news => {
 
-        const card = document.createElement('article');
-        card.className = 'news-card';
+    // CONTENT
 
+    const content = document.createElement('div');
 
-        // DATE
+    content.className = 'news-content';
+    content.textContent = news.content || '';
 
-        const date = document.createElement('div');
-        date.className = 'news-date';
-        date.textContent = formatNewsDate(news.created_at);
+    card.appendChild(content);
 
-
-        // TITLE
-
-        const title = document.createElement('h3');
-        title.className = 'news-title';
-        title.textContent = news.title || 'Untitled news';
+    return card;
+}
 
 
-        card.appendChild(date);
-        card.appendChild(title);
+// ========================================
+// LOAD MORE BUTTON
+// ========================================
 
+function createLoadMoreButton() {
+    const wrapper = document.createElement('div');
 
-        // IMAGE
+    wrapper.id = 'load-more-wrapper';
+    wrapper.style.textAlign = 'center';
+    wrapper.style.padding = '15px 5px';
 
-        if (news.image_url) {
+    const button = document.createElement('button');
 
-            const image = document.createElement('img');
+    button.id = 'load-more-news';
+    button.type = 'button';
+    button.textContent = 'LOAD MORE';
 
-            image.className = 'news-image';
-            image.src = news.image_url;
-            image.alt = news.title || 'News image';
-            image.loading = 'lazy';
+    button.style.padding = '11px 22px';
+    button.style.background = '#252d36';
+    button.style.color = '#e8edf2';
+    button.style.border = '1px solid #48525e';
+    button.style.borderRadius = '3px';
+    button.style.fontSize = '10px';
+    button.style.letterSpacing = '1px';
+    button.style.cursor = 'pointer';
 
-            // Open full-size image on click
+    button.addEventListener('click', loadMoreNews);
 
-            image.addEventListener('click', function() {
+    wrapper.appendChild(button);
 
-                openImageViewer(
-                    news.image_url,
-                    news.title
-                );
-
-            });
-
-            // Hide image if it cannot be loaded
-
-            image.addEventListener('error', function() {
-                image.remove();
-            });
-
-            card.appendChild(image);
-
-        }
-
-
-        // CONTENT
-
-        const content = document.createElement('div');
-        content.className = 'news-content';
-        content.textContent = news.content || '';
-
-        card.appendChild(content);
-
-
-        newsList.appendChild(card);
-
-    });
-
+    return wrapper;
 }
 
 
@@ -312,60 +448,193 @@ function displayNews(newsItems) {
 // LOAD NEWS FROM SUPABASE
 // ========================================
 
-async function loadNews() {
-
-    if (isLoadingNews) {
+async function loadMoreNews() {
+    if (isLoadingNews || !hasMoreNews) {
         return;
     }
 
     isLoadingNews = true;
 
+    const existingButton =
+        document.getElementById('load-more-wrapper');
+
+    const button = existingButton
+        ? existingButton.querySelector('button')
+        : null;
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'LOADING...';
+    }
+
+    if (currentNewsOffset === 0) {
+        showNewsStatus('Loading news...');
+    }
+
     try {
+        const start = currentNewsOffset;
+        const end = start + NEWS_PAGE_SIZE - 1;
 
         const { data, error } = await db
             .from('news')
             .select('id, title, content, image_url, created_at')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: false })
+            .range(start, end);
 
         if (error) {
             throw error;
         }
 
-        displayNews(data);
+        const newsItems = data || [];
+
+        const oldStatus =
+            newsList.querySelector('.news-status');
+
+        if (oldStatus) {
+            oldStatus.remove();
+        }
+
+        if (currentNewsOffset === 0 && newsItems.length === 0) {
+            showNewsStatus('No news published yet.');
+            hasMoreNews = false;
+            return;
+        }
+
+        newsItems.forEach(news => {
+            newsList.appendChild(createNewsCard(news));
+        });
+
+        currentNewsOffset += newsItems.length;
+
+        hasMoreNews =
+            newsItems.length === NEWS_PAGE_SIZE;
+
+        const oldWrapper =
+            document.getElementById('load-more-wrapper');
+
+        if (oldWrapper) {
+            oldWrapper.remove();
+        }
+
+        if (hasMoreNews) {
+            newsList.appendChild(createLoadMoreButton());
+        }
 
     } catch (error) {
+        console.error(
+            'Error loading news from Supabase:',
+            error
+        );
 
-        console.error('Error loading news from Supabase:', error);
+        if (currentNewsOffset === 0) {
+            showNewsStatus(
+                'Could not load news: ' + error.message
+            );
+        } else {
+            const oldWrapper =
+                document.getElementById('load-more-wrapper');
 
-        newsList.replaceChildren();
+            if (oldWrapper) {
+                oldWrapper.remove();
+            }
 
-        const message = document.createElement('div');
-        message.className = 'news-status';
-        message.textContent = 'Could not load news: ' + error.message;
+            const retryWrapper = createLoadMoreButton();
 
-        const retryButton = document.createElement('button');
+            const retryButton =
+                retryWrapper.querySelector('button');
 
-        retryButton.textContent = 'TRY AGAIN';
-        retryButton.style.marginTop = '12px';
-        retryButton.style.padding = '8px 14px';
-        retryButton.style.background = '#344b60';
-        retryButton.style.color = 'white';
-        retryButton.style.border = '1px solid #526a80';
-        retryButton.style.cursor = 'pointer';
+            retryButton.textContent = 'RETRY LOADING';
 
-        retryButton.addEventListener('click', loadNews);
-
-        message.appendChild(document.createElement('br'));
-        message.appendChild(retryButton);
-
-        newsList.appendChild(message);
+            newsList.appendChild(retryWrapper);
+        }
 
     } finally {
-
         isLoadingNews = false;
+    }
+}
 
+
+// ========================================
+// REFRESH NEWEST NEWS
+// ========================================
+
+async function refreshNews() {
+    if (newsRefreshInProgress || isLoadingNews) {
+        return;
     }
 
+    newsRefreshInProgress = true;
+
+    try {
+        const { data, error } = await db
+            .from('news')
+            .select('id, title, content, image_url, created_at')
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: false })
+            .limit(NEWS_PAGE_SIZE);
+
+        if (error) throw error;
+
+        const newestItems = data || [];
+
+        if (currentNewsOffset === 0) {
+            newsList.replaceChildren();
+
+            if (newestItems.length === 0) {
+                showNewsStatus('No news published yet.');
+                hasMoreNews = false;
+                return;
+            }
+
+            newestItems.forEach(news => {
+                newsList.appendChild(createNewsCard(news));
+            });
+
+            currentNewsOffset = newestItems.length;
+            hasMoreNews =
+                newestItems.length === NEWS_PAGE_SIZE;
+
+            if (hasMoreNews) {
+                newsList.appendChild(createLoadMoreButton());
+            }
+
+            return;
+        }
+
+        const existingIds = new Set(
+            Array.from(
+                newsList.querySelectorAll('.news-card')
+            ).map(card => card.dataset.newsId)
+        );
+
+        const newItems = newestItems.filter(
+            news => !existingIds.has(String(news.id))
+        );
+
+        if (newItems.length > 0) {
+            const firstCard =
+                newsList.querySelector('.news-card');
+
+            newItems.reverse().forEach(news => {
+                const card = createNewsCard(news);
+
+                if (firstCard) {
+                    newsList.insertBefore(card, firstCard);
+                } else {
+                    newsList.prepend(card);
+                }
+            });
+
+            currentNewsOffset += newItems.length;
+        }
+
+    } catch (error) {
+        console.error('Could not refresh news:', error);
+
+    } finally {
+        newsRefreshInProgress = false;
+    }
 }
 
 
@@ -373,7 +642,7 @@ async function loadNews() {
 // INITIAL NEWS LOAD
 // ========================================
 
-loadNews();
+loadMoreNews();
 
 
 // ========================================
@@ -390,7 +659,7 @@ db
             table: 'news'
         },
         function() {
-            loadNews();
+            refreshNews();
         }
     )
     .subscribe();
@@ -398,4 +667,4 @@ db
 
 // Backup refresh every 60 seconds
 
-setInterval(loadNews, 60000);
+setInterval(refreshNews, 60000);

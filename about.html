@@ -23,8 +23,13 @@
             min-height: 100vh;
         }
 
+        /* STICKY HEADER */
+
         header {
             min-height: 65px;
+            position: sticky;
+            top: 0;
+            z-index: 5000;
             background: #20262d;
             border-bottom: 1px solid #343b44;
             display: flex;
@@ -60,6 +65,8 @@
             color: white;
         }
 
+        /* HERO */
+
         .hero {
             text-align: center;
             padding: 65px 20px 55px;
@@ -79,8 +86,6 @@
             letter-spacing: 2px;
         }
 
-        /* FICTION DISCLAIMER */
-
         .fiction-disclaimer {
             color: #77818d;
             font-size: 11px;
@@ -93,10 +98,67 @@
             letter-spacing: 0.2px;
         }
 
+        /* ABOUT US NAVIGATION */
+
+        #about-navigation {
+            position: sticky;
+            top: 65px;
+            z-index: 4000;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 15px;
+            background: #1c2229;
+            border-bottom: 1px solid #343b44;
+        }
+
+        .about-tab {
+            color: #aeb8c3;
+            background: transparent;
+            border: 1px solid #48525e;
+            border-radius: 3px;
+            padding: 10px 20px;
+            font-size: 10px;
+            letter-spacing: 1.3px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .about-tab.active {
+            color: white;
+            background: #34404c;
+            border-color: #718294;
+        }
+
+        .about-tab:hover {
+            background: #343d47;
+            color: white;
+        }
+
+        /* MAIN CONTENT */
+
         main {
             max-width: 950px;
             margin: 35px auto;
             padding: 0 20px 50px;
+        }
+
+        .section-heading {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #343b44;
+        }
+
+        .section-heading h2 {
+            font-size: 21px;
+            letter-spacing: 2px;
+        }
+
+        .section-heading p {
+            color: #82909e;
+            font-size: 11px;
+            margin-top: 7px;
+            letter-spacing: 1px;
         }
 
         #chapters {
@@ -161,6 +223,61 @@
             font-size: 13px;
         }
 
+        /* PAGINATION */
+
+        #chapters-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            margin-top: 30px;
+        }
+
+        #chapters-pagination button {
+            color: #e8edf2;
+            background: #252d36;
+            border: 1px solid #48525e;
+            border-radius: 3px;
+            padding: 11px 18px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        #chapters-pagination button:hover:not(:disabled) {
+            background: #394653;
+        }
+
+        #chapters-pagination button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        #page-indicator {
+            color: #9ba8b5;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        /* FUTURE SECTIONS */
+
+        #future-section {
+            display: none;
+            text-align: center;
+            padding: 65px 20px;
+            color: #82909e;
+            background: #20262d;
+            border: 1px solid #343b44;
+            border-radius: 4px;
+        }
+
+        #future-section h2 {
+            color: #e8edf2;
+            font-size: 19px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
         footer {
             border-top: 1px solid #343b44;
             text-align: center;
@@ -169,6 +286,8 @@
             font-size: 10px;
             letter-spacing: 1px;
         }
+
+        /* LIGHTBOX */
 
         #lightbox {
             display: none;
@@ -218,6 +337,17 @@
                 padding: 7px;
             }
 
+            #about-navigation {
+                top: 62px;
+                gap: 5px;
+                padding: 10px 5px;
+            }
+
+            .about-tab {
+                padding: 9px 12px;
+                font-size: 9px;
+            }
+
             .hero h2 {
                 font-size: 23px;
             }
@@ -241,6 +371,14 @@
 
             .chapter-images {
                 grid-template-columns: 1fr;
+            }
+
+            #chapters-pagination {
+                gap: 9px;
+            }
+
+            #chapters-pagination button {
+                padding: 10px 12px;
             }
         }
     </style>
@@ -270,12 +408,50 @@
         </p>
     </section>
 
+    <nav id="about-navigation" aria-label="About Us sections">
+        <button class="about-tab active" type="button" id="history-tab">
+            HISTORY
+        </button>
+
+        <button class="about-tab" type="button" disabled title="Coming soon">
+            MORE SECTIONS COMING SOON
+        </button>
+    </nav>
+
     <main>
-        <div id="chapters">
-            <div id="chapters-status">
-                Loading history...
+
+        <section id="history-section">
+
+            <div class="section-heading">
+                <h2>HISTORY</h2>
+                <p>THE CHRONICLES OF THE EMPIRE</p>
             </div>
-        </div>
+
+            <div id="chapters">
+                <div id="chapters-status">
+                    Loading history...
+                </div>
+            </div>
+
+            <div id="chapters-pagination" hidden>
+                <button id="previous-page" type="button">
+                    PREVIOUS
+                </button>
+
+                <span id="page-indicator">PAGE 1</span>
+
+                <button id="next-page" type="button">
+                    NEXT
+                </button>
+            </div>
+
+        </section>
+
+        <section id="future-section">
+            <h2>MORE SECTIONS COMING SOON</h2>
+            <p>Additional information about the empire will appear here in the future.</p>
+        </section>
+
     </main>
 
     <footer>

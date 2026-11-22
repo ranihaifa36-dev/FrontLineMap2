@@ -202,6 +202,23 @@
         }
 
 
+        /* FRONTLINE DATE ARCHIVE MANAGEMENT */
+
+        .map-archive-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #39434e;
+        }
+
+        .map-archive-item:last-child { border-bottom: none; }
+
+        .map-archive-item h3 { font-size: 14px; margin-bottom: 5px; }
+
+        .map-archive-item p { color: #9ba8b5; font-size: 11px; margin-bottom: 10px; }
+
+        .map-archive-help { color: #84909d; font-size: 11px; line-height: 1.5; margin: -7px 0 16px; }
+
+        #map-archive-status { color: #aebdca; font-size: 12px; margin-top: 12px; white-space: pre-wrap; }
+
         /* ABOUT US CHAPTER MANAGEMENT */
 
         .chapter-admin-item {
@@ -281,6 +298,72 @@
             white-space: pre-wrap;
         }
 
+
+
+        /* COLLAPSIBLE ADMIN GROUPS */
+        .admin-group {
+            margin-bottom: 18px;
+            background: #1b2229;
+            border: 1px solid #3a4652;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .admin-group > summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+            background: #252e37;
+            color: #eef2f6;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1.2px;
+            user-select: none;
+        }
+
+        .admin-group > summary::-webkit-details-marker { display: none; }
+        .admin-group > summary::before {
+            content: '+';
+            display: inline-flex;
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #607080;
+            border-radius: 3px;
+            color: #c7d1db;
+            font-size: 15px;
+            flex: 0 0 20px;
+        }
+        .admin-group[open] > summary::before { content: '−'; }
+        .admin-group > summary:hover { background: #303b46; }
+        .group-summary-hint {
+            margin-left: auto;
+            color: #8796a5;
+            font-size: 10px;
+            font-weight: normal;
+            letter-spacing: 0;
+            text-align: right;
+        }
+        .admin-group-content { padding: 18px; }
+        .admin-group-content .panel:last-child { margin-bottom: 0; }
+        .show-more-button {
+            margin-top: 14px;
+            padding: 9px 13px;
+            background: #303943;
+            border-color: #4b5866;
+        }
+        .show-more-button:hover { background: #40505f; }
+
+        @media (max-width: 600px) {
+            .admin-group > summary { padding: 15px; font-size: 11px; }
+            .group-summary-hint { font-size: 9px; }
+            .admin-group-content { padding: 10px; }
+        }
+
         @media (max-width: 600px) {
             main {
                 margin-top: 20px;
@@ -348,6 +431,13 @@
     <!-- ADMIN DASHBOARD -->
 
     <section id="dashboard">
+
+        <details class="admin-group" id="news-group" open>
+            <summary>
+                <span>NEWS</span>
+                <span class="group-summary-hint">Create, edit and manage published news</span>
+            </summary>
+            <div class="admin-group-content">
 
         <div class="panel">
 
@@ -421,7 +511,56 @@
         </div>
 
 
+            </div>
+        </details>
+
+        <!-- FRONTLINE DATE ARCHIVE -->
+
+        <details class="admin-group" id="maps-group">
+            <summary>
+                <span>FRONTLINE MAP VERSIONS</span>
+                <span class="group-summary-hint">Upload dated GeoJSON maps and manage the archive</span>
+            </summary>
+            <div class="admin-group-content">
+
+        <div class="panel">
+            <h2>ADD FRONTLINE MAP VERSION</h2>
+
+            <form id="map-archive-form">
+                <label for="map-archive-date">Map date</label>
+                <input type="date" id="map-archive-date" required>
+
+                <label for="map-archive-title">Display name (optional)</label>
+                <input type="text" id="map-archive-title" maxlength="120" placeholder="Example: Frontline — November 22, 2026">
+
+                <label for="map-archive-file">GeoJSON file</label>
+                <input type="file" id="map-archive-file" accept=".geojson,.json,application/geo+json,application/json" required>
+
+                <div class="map-archive-help">Choose the date represented by the map, not the day you upload it. Upload a separate GeoJSON for every new date. Previous versions remain saved and can be selected on the public map. Files must be valid GeoJSON FeatureCollections and no larger than 25 MB.</div>
+
+                <button type="submit" id="save-map-version-button">SAVE MAP VERSION</button>
+            </form>
+
+            <div id="map-archive-status" role="status"></div>
+        </div>
+
+        <div class="panel">
+            <h2>SAVED FRONTLINE MAPS</h2>
+            <div id="admin-map-archive-list">Loading saved maps...</div>
+        </div>
+
+
+            </div>
+        </details>
+
         <!-- ABOUT US CHAPTER MANAGEMENT -->
+
+        <details class="admin-group" id="chapters-group">
+            <summary>
+                <span>HISTORY CHAPTERS</span>
+                <span class="group-summary-hint">Create, edit, reorder chapters and manage photos</span>
+            </summary>
+            <div class="admin-group-content">
 
         <div class="panel">
 
@@ -488,6 +627,9 @@
             </div>
 
         </div>
+
+            </div>
+        </details>
 
         <button class="danger" id="logout-button">
             LOG OUT
@@ -563,6 +705,50 @@ const cancelChapterEdit = document.getElementById('cancel-chapter-edit');
 
 let editingChapterId = null;
 
+const mapArchiveForm = document.getElementById('map-archive-form');
+const mapArchiveDate = document.getElementById('map-archive-date');
+const mapArchiveTitle = document.getElementById('map-archive-title');
+const mapArchiveFile = document.getElementById('map-archive-file');
+const mapArchiveStatus = document.getElementById('map-archive-status');
+const adminMapArchiveList = document.getElementById('admin-map-archive-list');
+const saveMapVersionButton = document.getElementById('save-map-version-button');
+
+
+
+
+
+
+// Keep long admin lists compact. The first five items are shown initially.
+function applyShowMore(container, itemSelector, limit = 5) {
+    const previousButton = container.querySelector('.show-more-button');
+    if (previousButton) previousButton.remove();
+
+    const items = Array.from(container.querySelectorAll(itemSelector));
+    if (items.length <= limit) {
+        items.forEach(item => item.style.display = '');
+        return;
+    }
+
+    let expanded = false;
+    const update = () => {
+        items.forEach((item, index) => {
+            item.style.display = expanded || index < limit ? '' : 'none';
+        });
+        button.textContent = expanded
+            ? 'SHOW LESS'
+            : `SHOW MORE (${items.length - limit} more)`;
+    };
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'show-more-button';
+    button.addEventListener('click', () => {
+        expanded = !expanded;
+        update();
+    });
+    container.appendChild(button);
+    update();
+}
 
 
 // ========================================
@@ -595,6 +781,7 @@ async function checkAdmin() {
 
     loadAdminNews();
     loadAdminChapters();
+    loadAdminMapArchive();
 
 }
 
@@ -980,8 +1167,191 @@ async function loadAdminNews() {
 
     });
 
+    applyShowMore(adminNewsList, '.admin-news-item', 5);
 }
 
+
+
+// ========================================
+// FRONTLINE DATE ARCHIVE MANAGEMENT
+// ========================================
+
+function formatArchiveDate(dateString) {
+    const date = new Date(`${dateString}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+    });
+}
+
+mapArchiveForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const date = mapArchiveDate.value;
+    const file = mapArchiveFile.files[0];
+
+    if (!date || !file) {
+        mapArchiveStatus.textContent = 'Choose a date and a GeoJSON file.';
+        return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+        mapArchiveStatus.textContent = 'The GeoJSON file must be 25 MB or smaller.';
+        return;
+    }
+
+    let geojson;
+    try {
+        geojson = JSON.parse(await file.text());
+        if (!geojson || geojson.type !== 'FeatureCollection' || !Array.isArray(geojson.features)) {
+            throw new Error('The file must contain a GeoJSON FeatureCollection.');
+        }
+    } catch (error) {
+        mapArchiveStatus.textContent = 'Invalid GeoJSON: ' + error.message;
+        return;
+    }
+
+    saveMapVersionButton.disabled = true;
+    mapArchiveStatus.textContent = 'Uploading map...';
+
+    let uploadedPath = null;
+
+    try {
+        const { data: existing, error: lookupError } = await db
+            .from('frontline_maps')
+            .select('id, storage_path, title')
+            .eq('map_date', date)
+            .maybeSingle();
+
+        if (lookupError) throw lookupError;
+
+        if (existing && !confirm(`A map for ${formatArchiveDate(date)} already exists. Replace that date's map? The old file will be removed after the new one is saved.`)) {
+            mapArchiveStatus.textContent = 'Upload cancelled. Existing map was kept.';
+            return;
+        }
+
+        uploadedPath = `${date}/${crypto.randomUUID()}.geojson`;
+
+        // Some Windows browsers report .geojson files as application/octet-stream.
+        // Re-wrap the bytes with an allowed, explicit MIME type before uploading.
+        const geoJsonUpload = new Blob(
+            [await file.arrayBuffer()],
+            { type: 'application/json' }
+        );
+
+        const { error: uploadError } = await db.storage
+            .from('frontline-maps')
+            .upload(uploadedPath, geoJsonUpload, {
+                contentType: 'application/json',
+                upsert: false
+            });
+
+        if (uploadError) throw uploadError;
+
+        const title = mapArchiveTitle.value.trim() || `Frontline — ${formatArchiveDate(date)}`;
+        let saveResult;
+
+        if (existing) {
+            saveResult = await db
+                .from('frontline_maps')
+                .update({ title, storage_path: uploadedPath, updated_at: new Date().toISOString() })
+                .eq('id', existing.id);
+        } else {
+            saveResult = await db
+                .from('frontline_maps')
+                .insert({ map_date: date, title, storage_path: uploadedPath });
+        }
+
+        if (saveResult.error) throw saveResult.error;
+
+        if (existing?.storage_path) {
+            const { error: removeOldError } = await db.storage
+                .from('frontline-maps')
+                .remove([existing.storage_path]);
+            if (removeOldError) console.warn('Old map file could not be removed:', removeOldError);
+        }
+
+        mapArchiveForm.reset();
+        mapArchiveStatus.textContent = `Saved successfully: ${formatArchiveDate(date)}.`;
+        await loadAdminMapArchive();
+
+    } catch (error) {
+        console.error('Map archive upload error:', error);
+        if (uploadedPath) {
+            await db.storage.from('frontline-maps').remove([uploadedPath]);
+        }
+        mapArchiveStatus.textContent = 'Could not save map: ' + error.message;
+    } finally {
+        saveMapVersionButton.disabled = false;
+    }
+});
+
+async function loadAdminMapArchive() {
+    adminMapArchiveList.textContent = 'Loading saved maps...';
+
+    try {
+        const { data, error } = await db
+            .from('frontline_maps')
+            .select('id, map_date, title, storage_path, created_at')
+            .order('map_date', { ascending: false });
+
+        if (error) throw error;
+
+        adminMapArchiveList.replaceChildren();
+
+        if (!data || data.length === 0) {
+            adminMapArchiveList.textContent = 'No archived maps yet. Add the August 8 and November 22 versions above.';
+            return;
+        }
+
+        data.forEach(record => {
+            const item = document.createElement('div');
+            item.className = 'map-archive-item';
+
+            const heading = document.createElement('h3');
+            heading.textContent = record.title || formatArchiveDate(record.map_date);
+
+            const info = document.createElement('p');
+            info.textContent = `Map date: ${formatArchiveDate(record.map_date)}`;
+
+            const removeButton = document.createElement('button');
+            removeButton.className = 'danger';
+            removeButton.textContent = 'DELETE VERSION';
+            removeButton.addEventListener('click', async function() {
+                if (!confirm(`Delete the archived map for ${formatArchiveDate(record.map_date)}? This cannot be undone.`)) return;
+
+                removeButton.disabled = true;
+                try {
+                    const { error: storageError } = await db.storage
+                        .from('frontline-maps')
+                        .remove([record.storage_path]);
+                    if (storageError) throw storageError;
+
+                    const { error: rowError } = await db
+                        .from('frontline_maps')
+                        .delete()
+                        .eq('id', record.id);
+                    if (rowError) throw rowError;
+
+                    await loadAdminMapArchive();
+                } catch (error) {
+                    alert('Could not delete map version: ' + error.message);
+                    removeButton.disabled = false;
+                }
+            });
+
+            item.appendChild(heading);
+            item.appendChild(info);
+            item.appendChild(removeButton);
+            adminMapArchiveList.appendChild(item);
+        });
+
+        applyShowMore(adminMapArchiveList, '.map-archive-item', 5);
+    } catch (error) {
+        console.error('Could not load map archive:', error);
+        adminMapArchiveList.textContent = 'Could not load saved maps: ' + error.message;
+    }
+}
 
 
 // ========================================
@@ -1366,6 +1736,8 @@ function renderAdminChapters(chapters, images) {
         item.appendChild(actions);
         adminChaptersList.appendChild(item);
     });
+
+    applyShowMore(adminChaptersList, '.chapter-admin-item', 5);
 }
 
 

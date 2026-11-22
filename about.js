@@ -16,11 +16,34 @@ const db = window.supabase.createClient(
 
 
 // ========================================
+// SETTINGS
+// ========================================
+
+const PAGE_SIZE = 10;
+
+let currentPage = 0;
+let totalChapters = 0;
+let isLoadingChapters = false;
+
+
+// ========================================
 // ELEMENTS
 // ========================================
 
 const chaptersContainer =
     document.getElementById('chapters');
+
+const pagination =
+    document.getElementById('chapters-pagination');
+
+const previousButton =
+    document.getElementById('previous-page');
+
+const nextButton =
+    document.getElementById('next-page');
+
+const pageIndicator =
+    document.getElementById('page-indicator');
 
 const lightbox =
     document.getElementById('lightbox');
@@ -93,15 +116,35 @@ function formatDate(dateString) {
 
 
 // ========================================
+// SHOW STATUS
+// ========================================
+
+function showStatus(message) {
+    chaptersContainer.replaceChildren();
+
+    const status = document.createElement('div');
+
+    status.id = 'chapters-status';
+    status.textContent = message;
+
+    chaptersContainer.appendChild(status);
+
+    pagination.hidden = true;
+}
+
+
+// ========================================
 // DISPLAY CHAPTERS
 // ========================================
 
-function displayChapters(chapters, images) {
+function displayChapters(chapters, images, startNumber) {
 
     chaptersContainer.replaceChildren();
 
     if (!chapters || chapters.length === 0) {
-        showStatus('The history of the empire has not been published yet.');
+        showStatus(
+            'The history of the empire has not been published yet.'
+        );
         return;
     }
 
@@ -121,7 +164,8 @@ function displayChapters(chapters, images) {
         number.className = 'chapter-number';
 
         number.textContent =
-            'CHAPTER ' + String(index + 1).padStart(2, '0');
+            'CHAPTER ' +
+            String(startNumber + index + 1).padStart(2, '0');
 
 
         // CHAPTER TITLE
@@ -190,7 +234,6 @@ function displayChapters(chapters, images) {
             });
 
             chapterElement.appendChild(imagesContainer);
-
         }
 
 
@@ -208,7 +251,6 @@ function displayChapters(chapters, images) {
 
         chapterElement.appendChild(date);
 
-
         chaptersContainer.appendChild(chapterElement);
 
     });
@@ -217,80 +259,104 @@ function displayChapters(chapters, images) {
 
 
 // ========================================
-// SHOW STATUS
+// UPDATE PAGINATION
 // ========================================
 
-function showStatus(message) {
+function updatePagination() {
 
-    chaptersContainer.replaceChildren();
+    const totalPages = Math.ceil(totalChapters / PAGE_SIZE);
 
-    const status =
-        document.createElement('div');
+    pagination.hidden = totalPages <= 1;
 
-    status.id = 'chapters-status';
-    status.textContent = message;
+    pageIndicator.textContent =
+        `PAGE ${currentPage + 1} OF ${totalPages}`;
 
-    chaptersContainer.appendChild(status);
+    previousButton.disabled = currentPage === 0;
 
+    nextButton.disabled =
+        currentPage >= totalPages - 1;
 }
 
 
 // ========================================
-// LOAD HISTORY FROM SUPABASE
+// LOAD HISTORY PAGE
 // ========================================
 
 async function loadChapters() {
+
+    if (isLoadingChapters) {
+        return;
+    }
+
+    isLoadingChapters = true;
 
     showStatus('Loading history...');
 
     try {
 
-        // LOAD CHAPTERS
+        const start = currentPage * PAGE_SIZE;
+        const end = start + PAGE_SIZE - 1;
 
-        const { data: chapters, error: chaptersError } =
-            await db
-                .from('chapters')
-                .select('*')
-                .order('sort_order', { ascending: true })
-                .order('created_at', { ascending: true });
+
+        // LOAD ONLY THE CURRENT PAGE
+
+        const {
+            data: chapters,
+            error: chaptersError,
+            count
+        } = await db
+            .from('chapters')
+            .select('*', { count: 'exact' })
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true })
+            .range(start, end);
 
         if (chaptersError) {
             throw chaptersError;
         }
 
+        totalChapters = count || 0;
+
 
         // NO CHAPTERS
 
         if (!chapters || chapters.length === 0) {
-            displayChapters([], []);
+
+            displayChapters([], [], start);
+
             return;
         }
 
 
-        // LOAD ALL CHAPTER IMAGES
+        // LOAD IMAGES ONLY FOR CURRENT PAGE
 
         const chapterIds =
             chapters.map(chapter => chapter.id);
 
-        const { data: images, error: imagesError } =
-            await db
-                .from('chapter_images')
-                .select('*')
-                .in('chapter_id', chapterIds)
-                .order('sort_order', { ascending: true })
-                .order('created_at', { ascending: true });
+        const {
+            data: images,
+            error: imagesError
+        } = await db
+            .from('chapter_images')
+            .select('*')
+            .in('chapter_id', chapterIds)
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
 
         if (imagesError) {
             throw imagesError;
         }
 
 
-        // DISPLAY EVERYTHING
+        // DISPLAY CURRENT PAGE
 
         displayChapters(
             chapters,
-            images || []
+            images || [],
+            start
         );
+
+        updatePagination();
 
     } catch (error) {
 
@@ -303,9 +369,55 @@ async function loadChapters() {
             'Could not load history: ' + error.message
         );
 
+    } finally {
+
+        isLoadingChapters = false;
+
     }
 
 }
+
+
+// ========================================
+// PAGINATION BUTTONS
+// ========================================
+
+previousButton.addEventListener('click', function() {
+
+    if (currentPage > 0 && !isLoadingChapters) {
+
+        currentPage--;
+
+        loadChapters();
+
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+});
+
+nextButton.addEventListener('click', function() {
+
+    const totalPages = Math.ceil(totalChapters / PAGE_SIZE);
+
+    if (
+        currentPage < totalPages - 1 &&
+        !isLoadingChapters
+    ) {
+
+        currentPage++;
+
+        loadChapters();
+
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+});
 
 
 // ========================================
