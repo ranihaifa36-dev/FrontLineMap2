@@ -1,824 +1,1628 @@
 
+
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
 
     <title>Admin Panel | Frontline Map</title>
 
     <link rel="icon" type="image/png" href="favicon.png">
 
+
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+
 
         body {
+
             background: #15191e;
+
             color: #e8edf2;
+
             font-family: Arial, sans-serif;
+
             min-height: 100vh;
+
         }
+
+
 
         header {
+
             height: 65px;
+
             background: #20262d;
+
             border-bottom: 1px solid #343b44;
+
             display: flex;
+
             align-items: center;
+
             padding: 0 22px;
+
             gap: 14px;
+
         }
+
+
 
         header img {
+
             width: 42px;
+
             height: 42px;
+
             object-fit: contain;
+
         }
+
+
 
         header h1 {
+
             font-size: 15px;
+
             letter-spacing: 2px;
+
             flex: 1;
+
         }
+
+
 
         a {
+
             color: #b5c2ce;
+
             text-decoration: none;
+
             font-size: 12px;
+
         }
+
+
 
         main {
+
             max-width: 900px;
+
             margin: 35px auto;
+
             padding: 0 20px 40px;
+
         }
+
+
 
         .panel {
+
             background: #20262d;
+
             border: 1px solid #343b44;
+
             border-radius: 4px;
+
             padding: 24px;
+
             margin-bottom: 22px;
+
         }
+
+
 
         h2 {
+
             font-size: 17px;
+
             letter-spacing: 1.5px;
+
             margin-bottom: 22px;
+
         }
+
+
 
         label {
+
             display: block;
+
             color: #aab5c0;
+
             font-size: 12px;
+
             margin-bottom: 8px;
+
         }
+
+
 
         input, textarea {
+
             width: 100%;
+
             background: #151a20;
+
             border: 1px solid #3b4652;
+
             border-radius: 3px;
+
             padding: 12px;
+
             color: white;
+
             font-family: Arial, sans-serif;
+
             font-size: 14px;
+
             margin-bottom: 18px;
+
         }
+
+
 
         textarea {
+
             min-height: 150px;
+
             resize: vertical;
+
             line-height: 1.5;
+
         }
+
+
 
         input:focus, textarea:focus {
+
             outline: none;
+
             border-color: #8296aa;
+
         }
+
+
 
         input[type="file"] {
+
             padding: 10px;
+
             font-size: 12px;
+
         }
+
+
 
         button {
+
             background: #344b60;
+
             color: white;
+
             border: 1px solid #526a80;
+
             border-radius: 3px;
+
             padding: 12px 18px;
+
             cursor: pointer;
+
             font-weight: bold;
+
             font-size: 12px;
+
             letter-spacing: 0.5px;
+
         }
 
-        button:hover {
-            background: #405e78;
-        }
+
+
+        button:hover { background: #405e78; }
+
+
 
         button:disabled {
+
             opacity: 0.5;
+
             cursor: not-allowed;
+
         }
+
+
 
         .danger {
+
             background: #702f32;
+
             border-color: #914447;
+
         }
 
-        .danger:hover {
-            background: #913b40;
-        }
+
+
+        .danger:hover { background: #913b40; }
+
+
 
         .secondary {
+
             background: #303943;
+
             border-color: #4b5866;
+
         }
+
+
 
         .form-buttons {
+
             display: flex;
+
             gap: 10px;
+
             flex-wrap: wrap;
+
         }
+
+
 
         #login-section {
+
             max-width: 430px;
+
             margin: 70px auto;
+
         }
 
-        #dashboard {
-            display: none;
-        }
+
+
+        #dashboard { display: none; }
+
+
 
         #status {
+
             font-size: 12px;
+
             color: #aebdca;
+
             margin-top: 15px;
+
             white-space: pre-wrap;
+
         }
+
+
 
         .admin-news-item {
+
             padding: 16px 0;
+
             border-bottom: 1px solid #39434e;
+
         }
 
-        .admin-news-item:last-child {
-            border-bottom: none;
-        }
+
+
+        .admin-news-item:last-child { border-bottom: none; }
+
+
 
         .admin-news-item h3 {
+
             font-size: 14px;
+
             margin-bottom: 7px;
+
         }
+
+
 
         .admin-news-item p {
+
             color: #9ba8b5;
+
             font-size: 11px;
+
             margin-bottom: 12px;
+
         }
+
+
 
         .admin-news-actions {
+
             display: flex;
+
             gap: 8px;
+
         }
+
+
 
         .admin-news-actions button {
+
             padding: 8px 12px;
+
             font-size: 11px;
+
         }
 
+
+
         #preview {
+
             max-width: 100%;
+
             max-height: 220px;
+
             display: none;
+
             margin: 0 0 18px;
+
             border-radius: 3px;
+
         }
+
 
 
         /* FRONTLINE DATE ARCHIVE MANAGEMENT */
 
+
+
         .map-archive-item {
+
             padding: 15px 0;
+
             border-bottom: 1px solid #39434e;
+
         }
+
+
 
         .map-archive-item:last-child { border-bottom: none; }
 
-        .map-archive-item h3 { font-size: 14px; margin-bottom: 5px; }
 
-        .map-archive-item p { color: #9ba8b5; font-size: 11px; margin-bottom: 10px; }
 
-        .map-archive-help { color: #84909d; font-size: 11px; line-height: 1.5; margin: -7px 0 16px; }
+        .map-archive-item h3 {
 
-        #map-archive-status { color: #aebdca; font-size: 12px; margin-top: 12px; white-space: pre-wrap; }
+            font-size: 14px;
+
+            margin-bottom: 5px;
+
+        }
+
+
+
+        .map-archive-item p {
+
+            color: #9ba8b5;
+
+            font-size: 11px;
+
+            margin-bottom: 10px;
+
+        }
+
+
+
+        .map-archive-help {
+
+            color: #84909d;
+
+            font-size: 11px;
+
+            line-height: 1.5;
+
+            margin: -7px 0 16px;
+
+        }
+
+
+
+        #map-archive-status {
+
+            color: #aebdca;
+
+            font-size: 12px;
+
+            margin-top: 12px;
+
+            white-space: pre-wrap;
+
+        }
+
+
 
         /* ABOUT US CHAPTER MANAGEMENT */
 
+
+
         .chapter-admin-item {
+
             padding: 18px 0;
+
             border-bottom: 1px solid #39434e;
+
         }
 
-        .chapter-admin-item:last-child {
-            border-bottom: none;
-        }
+
+
+        .chapter-admin-item:last-child { border-bottom: none; }
+
+
 
         .chapter-admin-item h3 {
+
             font-size: 15px;
+
             margin-bottom: 7px;
+
         }
+
+
 
         .chapter-admin-item p {
+
             color: #9ba8b5;
+
             font-size: 11px;
+
             margin-bottom: 12px;
+
             white-space: pre-wrap;
+
         }
+
+
 
         .chapter-admin-actions {
+
             display: flex;
+
             gap: 8px;
+
             flex-wrap: wrap;
+
             margin-top: 12px;
+
         }
+
+
 
         .chapter-admin-actions button {
+
             padding: 8px 12px;
+
             font-size: 11px;
+
         }
+
+
 
         .chapter-image-list {
+
             display: flex;
+
             flex-wrap: wrap;
+
             gap: 12px;
+
             margin-top: 14px;
+
         }
+
+
 
         .chapter-image-item {
+
             width: 125px;
+
             background: #151a20;
+
             border: 1px solid #3b4652;
+
             padding: 7px;
+
             border-radius: 3px;
+
         }
+
+
 
         .chapter-image-item img {
+
             width: 100%;
+
             height: 85px;
+
             object-fit: contain;
+
             display: block;
+
             margin-bottom: 7px;
+
             background: #0f1317;
+
         }
+
+
 
         .chapter-image-item button {
+
             width: 100%;
+
             padding: 7px 5px;
+
             font-size: 10px;
+
         }
+
+
 
         .chapter-help {
+
             color: #84909d;
+
             font-size: 11px;
+
             line-height: 1.5;
+
             margin: -8px 0 16px;
+
         }
 
+
+
         .chapter-status {
+
             color: #aebdca;
+
             font-size: 12px;
+
             margin-top: 12px;
+
             white-space: pre-wrap;
+
         }
 
 
 
         /* COLLAPSIBLE ADMIN GROUPS */
+
+
+
         .admin-group {
+
             margin-bottom: 18px;
+
             background: #1b2229;
+
             border: 1px solid #3a4652;
+
             border-radius: 5px;
+
             overflow: hidden;
+
         }
+
+
 
         .admin-group > summary {
+
             list-style: none;
+
             cursor: pointer;
+
             display: flex;
+
             align-items: center;
+
             gap: 14px;
+
             padding: 18px 20px;
+
             background: #252e37;
+
             color: #eef2f6;
+
             font-size: 13px;
+
             font-weight: bold;
+
             letter-spacing: 1.2px;
+
             user-select: none;
+
         }
+
+
 
         .admin-group > summary::-webkit-details-marker { display: none; }
+
+
+
         .admin-group > summary::before {
+
             content: '+';
+
             display: inline-flex;
+
             width: 20px;
+
             height: 20px;
+
             align-items: center;
+
             justify-content: center;
+
             border: 1px solid #607080;
+
             border-radius: 3px;
+
             color: #c7d1db;
+
             font-size: 15px;
+
             flex: 0 0 20px;
+
         }
+
+
+
         .admin-group[open] > summary::before { content: '−'; }
+
         .admin-group > summary:hover { background: #303b46; }
+
+
+
         .group-summary-hint {
+
             margin-left: auto;
+
             color: #8796a5;
+
             font-size: 10px;
+
             font-weight: normal;
+
             letter-spacing: 0;
+
             text-align: right;
+
         }
+
+
+
         .admin-group-content { padding: 18px; }
+
+
+
         .admin-group-content .panel:last-child { margin-bottom: 0; }
+
+
+
         .show-more-button {
+
             margin-top: 14px;
+
             padding: 9px 13px;
+
             background: #303943;
+
             border-color: #4b5866;
+
         }
+
+
+
         .show-more-button:hover { background: #40505f; }
 
-        @media (max-width: 600px) {
-            .admin-group > summary { padding: 15px; font-size: 11px; }
-            .group-summary-hint { font-size: 9px; }
-            .admin-group-content { padding: 10px; }
-        }
+
 
         @media (max-width: 600px) {
-            main {
-                margin-top: 20px;
-                padding: 0 12px 30px;
-            }
 
-            .panel {
-                padding: 17px;
-            }
+            .admin-group > summary {
 
-            header h1 {
+                padding: 15px;
+
                 font-size: 11px;
+
             }
+
+
+
+            .group-summary-hint { font-size: 9px; }
+
+            .admin-group-content { padding: 10px; }
+
+
+
+            main {
+
+                margin-top: 20px;
+
+                padding: 0 12px 30px;
+
+            }
+
+
+
+            .panel { padding: 17px; }
+
+            header h1 { font-size: 11px; }
+
         }
+
     </style>
+
 </head>
+
+
 
 <body>
 
+
+
 <header>
+
     <img src="emblem.png" alt="Empire Emblem">
+
     <h1>FRONTLINE MAP — ADMINISTRATION</h1>
+
     <a href="index.html">BACK TO MAP</a>
+
 </header>
+
+
 
 <main>
 
+
+
     <!-- LOGIN -->
+
+
 
     <section id="login-section" class="panel">
 
         <h2>ADMIN LOGIN</h2>
 
+
+
         <form id="login-form">
 
             <label for="email">Email</label>
+
             <input
+
                 type="email"
+
                 id="email"
+
                 required
+
                 autocomplete="username"
+
                 placeholder="Admin email"
+
             >
+
+
 
             <label for="password">Password</label>
+
             <input
+
                 type="password"
+
                 id="password"
+
                 required
+
                 autocomplete="current-password"
+
                 placeholder="Admin password"
+
             >
 
-            <button type="submit" id="login-button">
-                LOGIN
-            </button>
+
+
+            <button type="submit" id="login-button">LOGIN</button>
 
         </form>
+
+
 
         <div id="login-status" role="status"></div>
 
     </section>
 
 
+
+
+
     <!-- ADMIN DASHBOARD -->
+
+
 
     <section id="dashboard">
 
+
+
         <details class="admin-group" id="news-group" open>
+
             <summary>
+
                 <span>NEWS</span>
+
                 <span class="group-summary-hint">Create, edit and manage published news</span>
+
             </summary>
+
+
+
             <div class="admin-group-content">
 
-        <div class="panel">
 
-            <h2 id="form-heading">CREATE NEWS</h2>
 
-            <form id="news-form">
+                <div class="panel">
 
-                <label for="news-title">News title</label>
+                    <h2 id="form-heading">CREATE NEWS</h2>
 
-                <input
-                    type="text"
-                    id="news-title"
-                    maxlength="200"
-                    required
-                    placeholder="Enter news title..."
-                >
 
-                <label for="news-content">News content</label>
 
-                <textarea
-                    id="news-content"
-                    maxlength="10000"
-                    required
-                    placeholder="Write your news..."
-                ></textarea>
+                    <form id="news-form">
 
-                <label for="news-image">
-                    Image (optional)
-                </label>
+                        <label for="news-title">News title</label>
 
-                <input
-                    type="file"
-                    id="news-image"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                >
+                        <input
 
-                <img id="preview" alt="Image preview">
+                            type="text"
 
-                <div class="form-buttons">
+                            id="news-title"
 
-                    <button type="submit" id="publish-button">
-                        PUBLISH NEWS
-                    </button>
+                            maxlength="200"
 
-                    <button
-                        type="button"
-                        class="secondary"
-                        id="cancel-edit"
-                        style="display:none"
-                    >
-                        CANCEL EDIT
-                    </button>
+                            required
+
+                            placeholder="Enter news title..."
+
+                        >
+
+
+
+                        <label for="news-content">News content</label>
+
+                        <textarea
+
+                            id="news-content"
+
+                            maxlength="10000"
+
+                            required
+
+                            placeholder="Write your news..."
+
+                        ></textarea>
+
+
+
+                        <label for="news-image">Image (optional)</label>
+
+                        <input
+
+                            type="file"
+
+                            id="news-image"
+
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+
+                        >
+
+
+
+                        <img id="preview" alt="Image preview">
+
+
+
+                        <div class="form-buttons">
+
+                            <button type="submit" id="publish-button">
+
+                                PUBLISH NEWS
+
+                            </button>
+
+
+
+                            <button
+
+                                type="button"
+
+                                class="secondary"
+
+                                id="cancel-edit"
+
+                                style="display:none"
+
+                            >
+
+                                CANCEL EDIT
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+
+
+                    <div id="status" role="status"></div>
 
                 </div>
 
-            </form>
-
-            <div id="status" role="status"></div>
-
-        </div>
 
 
-        <div class="panel">
+                <div class="panel">
 
-            <h2>PUBLISHED NEWS</h2>
+                    <h2>PUBLISHED NEWS</h2>
 
-            <div id="admin-news-list">
-                Loading...
-            </div>
+                    <div id="admin-news-list">Loading...</div>
 
-        </div>
+                </div>
+
 
 
             </div>
+
         </details>
+
+
+
+
 
         <!-- FRONTLINE DATE ARCHIVE -->
 
+
+
         <details class="admin-group" id="maps-group">
+
             <summary>
+
                 <span>FRONTLINE MAP VERSIONS</span>
+
                 <span class="group-summary-hint">Upload dated GeoJSON maps and manage the archive</span>
+
             </summary>
+
+
+
             <div class="admin-group-content">
 
-        <div class="panel">
-            <h2>ADD FRONTLINE MAP VERSION</h2>
 
-            <form id="map-archive-form">
-                <label for="map-archive-date">Map date</label>
-                <input type="date" id="map-archive-date" required>
 
-                <label for="map-archive-title">Display name (optional)</label>
-                <input type="text" id="map-archive-title" maxlength="120" placeholder="Example: Frontline — November 22, 2026">
+                <div class="panel">
 
-                <label for="map-archive-file">GeoJSON file</label>
-                <input type="file" id="map-archive-file" accept=".geojson,.json,application/geo+json,application/json" required>
+                    <h2>ADD FRONTLINE MAP VERSION</h2>
 
-                <div class="map-archive-help">Choose the date represented by the map, not the day you upload it. Upload a separate GeoJSON for every new date. Previous versions remain saved and can be selected on the public map. Files must be valid GeoJSON FeatureCollections and no larger than 25 MB.</div>
 
-                <button type="submit" id="save-map-version-button">SAVE MAP VERSION</button>
-            </form>
 
-            <div id="map-archive-status" role="status"></div>
-        </div>
+                    <form id="map-archive-form">
 
-        <div class="panel">
-            <h2>SAVED FRONTLINE MAPS</h2>
-            <div id="admin-map-archive-list">Loading saved maps...</div>
-        </div>
+                        <label for="map-archive-date">Map date</label>
+
+                        <input type="date" id="map-archive-date" required>
+
+
+
+                        <label for="map-archive-title">Display name (optional)</label>
+
+                        <input
+
+                            type="text"
+
+                            id="map-archive-title"
+
+                            maxlength="120"
+
+                            placeholder="Example: Frontline — November 22, 2026"
+
+                        >
+
+
+
+                        <label for="map-archive-file">GeoJSON file</label>
+
+                        <input
+
+                            type="file"
+
+                            id="map-archive-file"
+
+                            accept=".geojson,.json,application/geo+json,application/json"
+
+                            required
+
+                        >
+
+
+
+                        <div class="map-archive-help">
+
+                            Choose the date represented by the map, not the day you upload it.
+
+                            Upload a separate GeoJSON for every new date. Previous versions remain
+
+                            saved and can be selected on the public map. Files must be valid
+
+                            GeoJSON FeatureCollections and no larger than 25 MB.
+
+                        </div>
+
+
+
+                        <button type="submit" id="save-map-version-button">
+
+                            SAVE MAP VERSION
+
+                        </button>
+
+                    </form>
+
+
+
+                    <div id="map-archive-status" role="status"></div>
+
+                </div>
+
+
+
+                <div class="panel">
+
+                    <h2>SAVED FRONTLINE MAPS</h2>
+
+                    <div id="admin-map-archive-list">Loading saved maps...</div>
+
+                </div>
+
 
 
             </div>
+
         </details>
+
+
+
+
 
         <!-- ABOUT US CHAPTER MANAGEMENT -->
 
+
+
         <details class="admin-group" id="chapters-group">
+
             <summary>
+
                 <span>HISTORY CHAPTERS</span>
+
                 <span class="group-summary-hint">Create, edit, reorder chapters and manage photos</span>
+
             </summary>
+
+
+
             <div class="admin-group-content">
 
-        <div class="panel">
 
-            <h2 id="chapter-form-heading">CREATE HISTORY CHAPTER</h2>
 
-            <form id="chapter-form">
+                <div class="panel">
 
-                <label for="chapter-title">Chapter title</label>
-                <input
-                    type="text"
-                    id="chapter-title"
-                    maxlength="200"
-                    required
-                    placeholder="Enter chapter title..."
-                >
+                    <h2 id="chapter-form-heading">CREATE HISTORY CHAPTER</h2>
 
-                <label for="chapter-content">Chapter content</label>
-                <textarea
-                    id="chapter-content"
-                    maxlength="30000"
-                    placeholder="Write the history of this chapter..."
-                ></textarea>
 
-                <label for="chapter-images">Chapter photos</label>
-                <input
-                    type="file"
-                    id="chapter-images"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    multiple
-                >
 
-                <div class="chapter-help">
-                    You can select several photos at once. Each image must be 8 MB or smaller.
-                    When editing a chapter, newly selected photos will be added to its existing photos.
+                    <form id="chapter-form">
+
+                        <label for="chapter-title">Chapter title</label>
+
+                        <input
+
+                            type="text"
+
+                            id="chapter-title"
+
+                            maxlength="200"
+
+                            required
+
+                            placeholder="Enter chapter title..."
+
+                        >
+
+
+
+                        <label for="chapter-content">Chapter content</label>
+
+                        <textarea
+
+                            id="chapter-content"
+
+                            maxlength="30000"
+
+                            placeholder="Write the history of this chapter..."
+
+                        ></textarea>
+
+
+
+                        <label for="chapter-images">Chapter photos</label>
+
+                        <input
+
+                            type="file"
+
+                            id="chapter-images"
+
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+
+                            multiple
+
+                        >
+
+
+
+                        <div class="chapter-help">
+
+                            You can select several photos at once. Each image must be 8 MB or smaller.
+
+                            When editing a chapter, newly selected photos will be added to its existing photos.
+
+                        </div>
+
+
+
+                        <div class="form-buttons">
+
+                            <button type="submit" id="save-chapter-button">
+
+                                PUBLISH CHAPTER
+
+                            </button>
+
+
+
+                            <button
+
+                                type="button"
+
+                                class="secondary"
+
+                                id="cancel-chapter-edit"
+
+                                style="display:none"
+
+                            >
+
+                                CANCEL EDIT
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+
+
+                    <div id="chapter-status" class="chapter-status" role="status"></div>
+
                 </div>
 
-                <div class="form-buttons">
-                    <button type="submit" id="save-chapter-button">
-                        PUBLISH CHAPTER
-                    </button>
 
-                    <button
-                        type="button"
-                        class="secondary"
-                        id="cancel-chapter-edit"
-                        style="display:none"
-                    >
-                        CANCEL EDIT
-                    </button>
+
+                <div class="panel">
+
+                    <h2>PUBLISHED HISTORY CHAPTERS</h2>
+
+                    <div id="admin-chapters-list">Loading chapters...</div>
+
                 </div>
 
-            </form>
 
-            <div id="chapter-status" class="chapter-status" role="status"></div>
-
-        </div>
-
-        <div class="panel">
-
-            <h2>PUBLISHED HISTORY CHAPTERS</h2>
-
-            <div id="admin-chapters-list">
-                Loading chapters...
-            </div>
-
-        </div>
 
             </div>
+
         </details>
 
-        <button class="danger" id="logout-button">
-            LOG OUT
-        </button>
+
+
+        <button class="danger" id="logout-button">LOG OUT</button>
+
+
 
     </section>
+
+
 
 </main>
 
 
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
 
 <script>
 
+
+
 // ========================================
+
 // SUPABASE CONFIGURATION
+
 // ========================================
+
+
 
 const SUPABASE_URL =
+
     'https://qeiospslkykwdrbgflzb.supabase.co';
 
+
+
 const SUPABASE_KEY =
+
     'sb_publishable_HuG7VQQDL5hbhM3zwvOJIA_w0sE5H1V';
 
+
+
 const ADMIN_UID =
+
     '7a1279bc-f6d1-4b98-adf8-b230cd007066';
 
+
+
 const db = window.supabase.createClient(
+
     SUPABASE_URL,
+
     SUPABASE_KEY
+
 );
 
 
+
+
+
 // ========================================
+
 // ELEMENTS
+
 // ========================================
+
+
 
 const loginSection = document.getElementById('login-section');
+
 const dashboard = document.getElementById('dashboard');
 
+
+
 const loginForm = document.getElementById('login-form');
+
 const loginStatus = document.getElementById('login-status');
 
+
+
 const newsForm = document.getElementById('news-form');
+
 const newsTitle = document.getElementById('news-title');
+
 const newsContent = document.getElementById('news-content');
+
 const newsImage = document.getElementById('news-image');
 
+
+
 const preview = document.getElementById('preview');
+
 const status = document.getElementById('status');
 
+
+
 const adminNewsList =
+
     document.getElementById('admin-news-list');
 
+
+
 const publishButton =
+
     document.getElementById('publish-button');
 
+
+
 const cancelEdit =
+
     document.getElementById('cancel-edit');
 
 
+
 let editingId = null;
+
 let existingImageUrl = null;
 
+
+
 const chapterForm = document.getElementById('chapter-form');
+
 const chapterTitle = document.getElementById('chapter-title');
+
 const chapterContent = document.getElementById('chapter-content');
+
 const chapterImagesInput = document.getElementById('chapter-images');
+
 const chapterStatus = document.getElementById('chapter-status');
+
 const adminChaptersList = document.getElementById('admin-chapters-list');
+
 const saveChapterButton = document.getElementById('save-chapter-button');
+
 const cancelChapterEdit = document.getElementById('cancel-chapter-edit');
+
+// The editor panels can be temporarily moved directly below the item being edited.
+const newsEditorPanel = newsForm.closest('.panel');
+const chapterEditorPanel = chapterForm.closest('.panel');
+const newsEditorHome = document.createComment('news editor home');
+const chapterEditorHome = document.createComment('chapter editor home');
+newsEditorPanel.parentNode.insertBefore(newsEditorHome, newsEditorPanel);
+chapterEditorPanel.parentNode.insertBefore(chapterEditorHome, chapterEditorPanel);
+
+function restoreEditorPanel(panel, homeMarker) {
+    if (homeMarker.parentNode) {
+        homeMarker.parentNode.insertBefore(panel, homeMarker.nextSibling);
+    }
+}
+
+function moveEditorBelow(panel, item) {
+    item.appendChild(panel);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
 
 let editingChapterId = null;
 
+
+
 const mapArchiveForm = document.getElementById('map-archive-form');
+
 const mapArchiveDate = document.getElementById('map-archive-date');
+
 const mapArchiveTitle = document.getElementById('map-archive-title');
+
 const mapArchiveFile = document.getElementById('map-archive-file');
+
 const mapArchiveStatus = document.getElementById('map-archive-status');
+
 const adminMapArchiveList = document.getElementById('admin-map-archive-list');
+
 const saveMapVersionButton = document.getElementById('save-map-version-button');
 
 
 
 
 
+// ========================================
 
-// Keep long admin lists compact. The first five items are shown initially.
+// SHOW MORE
+
+// ========================================
+
+
+
+const showMoreStates = new WeakMap();
+
 function applyShowMore(container, itemSelector, limit = 5) {
+
     const previousButton = container.querySelector('.show-more-button');
+
     if (previousButton) previousButton.remove();
 
+
+
     const items = Array.from(container.querySelectorAll(itemSelector));
+
+
+
     if (items.length <= limit) {
+
         items.forEach(item => item.style.display = '');
+
         return;
+
     }
 
-    let expanded = false;
+
+
+    let expanded = showMoreStates.get(container) || false;
+
+
+
     const update = () => {
+
         items.forEach((item, index) => {
+
             item.style.display = expanded || index < limit ? '' : 'none';
+
         });
+
+
+
         button.textContent = expanded
+
             ? 'SHOW LESS'
+
             : `SHOW MORE (${items.length - limit} more)`;
+
     };
 
+
+
     const button = document.createElement('button');
+
     button.type = 'button';
+
     button.className = 'show-more-button';
+
+
+
     button.addEventListener('click', () => {
+
         expanded = !expanded;
+        showMoreStates.set(container, expanded);
+
         update();
+
     });
+
+
+
     container.appendChild(button);
+
     update();
+
 }
 
 
+
+
+
 // ========================================
+
 // AUTHENTICATION
+
 // ========================================
+
+
 
 async function checkAdmin() {
 
     const { data, error } = await db.auth.getSession();
 
-    if (error) {
-        console.error(error);
-    }
+
+
+    if (error) console.error(error);
+
+
 
     const user = data.session?.user;
+
+
 
     if (!user || user.id !== ADMIN_UID) {
 
         await db.auth.signOut();
 
+
+
         loginSection.style.display = 'block';
+
         dashboard.style.display = 'none';
 
         return;
 
     }
 
+
+
     loginSection.style.display = 'none';
+
     dashboard.style.display = 'block';
 
+
+
     loadAdminNews();
+
     loadAdminChapters();
+
     loadAdminMapArchive();
 
 }
 
 
+
+
+
 // LOGIN
+
+
 
 loginForm.addEventListener('submit', async function(event) {
 
     event.preventDefault();
 
+
+
     loginStatus.textContent = 'Logging in...';
 
+
+
     const email = document.getElementById('email').value;
+
     const password = document.getElementById('password').value;
 
+
+
     const { data, error } = await db.auth.signInWithPassword({
+
         email,
+
         password
+
     });
+
+
 
     if (error) {
 
         loginStatus.textContent = error.message;
+
         return;
 
     }
+
+
 
     if (data.user.id !== ADMIN_UID) {
 
         await db.auth.signOut();
 
+
+
         loginStatus.textContent =
+
             'Access denied. This account is not an administrator.';
+
+
 
         return;
 
     }
+
+
 
     loginStatus.textContent = '';
 
@@ -827,9 +1631,15 @@ loginForm.addEventListener('submit', async function(event) {
 });
 
 
+
+
+
 // LOGOUT
 
+
+
 document.getElementById('logout-button')
+
     .addEventListener('click', async function() {
 
         await db.auth.signOut();
@@ -839,156 +1649,716 @@ document.getElementById('logout-button')
     });
 
 
+
+
+
 // ========================================
+
 // IMAGE PREVIEW
+
 // ========================================
+
+
 
 newsImage.addEventListener('change', function() {
 
     const file = newsImage.files[0];
 
+
+
     if (!file) {
 
         preview.style.display = 'none';
+
         preview.removeAttribute('src');
 
         return;
 
     }
 
+
+
     if (!file.type.startsWith('image/')) {
 
         alert('Please select an image.');
+
         newsImage.value = '';
+
         return;
 
     }
+
+
 
     if (file.size > 8 * 1024 * 1024) {
 
         alert('Image must be smaller than 8 MB.');
+
         newsImage.value = '';
+
         return;
 
     }
 
+
+
     preview.src = URL.createObjectURL(file);
+
     preview.style.display = 'block';
 
 });
 
 
+
+
+
 // ========================================
-// UPLOAD IMAGE
+
+// AUTOMATIC IMAGE OPTIMIZATION
+
 // ========================================
+
+
+
+async function optimizeImage(file) {
+
+
+
+    // Preserve animated GIF files.
+
+    if (file.type === 'image/gif') {
+
+        return file;
+
+    }
+
+
+
+    // Only optimize supported image formats.
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+
+        return file;
+
+    }
+
+
+
+    let bitmap;
+
+
+
+    try {
+
+        bitmap = await createImageBitmap(file);
+
+
+
+        const MAX_DIMENSION = 1920;
+
+        const QUALITY = 0.80;
+
+
+
+        let width = bitmap.width;
+
+        let height = bitmap.height;
+
+
+
+        const scale = Math.min(
+
+            1,
+
+            MAX_DIMENSION / Math.max(width, height)
+
+        );
+
+
+
+        width = Math.round(width * scale);
+
+        height = Math.round(height * scale);
+
+
+
+        const canvas = document.createElement('canvas');
+
+        canvas.width = width;
+
+        canvas.height = height;
+
+
+
+        const context = canvas.getContext('2d');
+
+        context.drawImage(bitmap, 0, 0, width, height);
+
+
+
+        const compressedBlob = await new Promise(resolve => {
+
+            canvas.toBlob(resolve, 'image/webp', QUALITY);
+
+        });
+
+
+
+        if (!compressedBlob) return file;
+
+
+
+        // Keep the original if compression did not help.
+
+        if (compressedBlob.size >= file.size) {
+
+            return file;
+
+        }
+
+
+
+        const originalName = file.name.replace(/\.[^.]+$/, '');
+
+
+
+        const optimizedFile = new File(
+
+            [compressedBlob],
+
+            `${originalName}.webp`,
+
+            {
+
+                type: 'image/webp',
+
+                lastModified: Date.now()
+
+            }
+
+        );
+
+
+
+        console.log(
+
+            `Image optimized: ${file.name}`,
+
+            `${(file.size / 1024 / 1024).toFixed(2)} MB →`,
+
+            `${(optimizedFile.size / 1024 / 1024).toFixed(2)} MB`
+
+        );
+
+
+
+        return optimizedFile;
+
+
+
+    } finally {
+
+        if (bitmap) bitmap.close();
+
+    }
+
+}
+
+
+
+
+
+// ========================================
+
+// NEWS IMAGE STORAGE HELPERS
+
+// ========================================
+
+
+
+// Extract the Storage object path from a Supabase public URL.
+
+// Returns null if the URL does not belong to the requested bucket.
+
+
+
+function getStoragePathFromPublicUrl(publicUrl, bucketName) {
+
+    if (!publicUrl) return null;
+
+
+
+    try {
+
+        const url = new URL(publicUrl);
+
+        const marker = `/storage/v1/object/public/${bucketName}/`;
+
+        const markerIndex = url.pathname.indexOf(marker);
+
+
+
+        if (markerIndex === -1) return null;
+
+
+
+        const encodedPath = url.pathname.slice(
+
+            markerIndex + marker.length
+
+        );
+
+
+
+        return decodeURIComponent(encodedPath);
+
+
+
+    } catch (error) {
+
+        console.warn('Could not extract Storage path:', error);
+
+        return null;
+
+    }
+
+}
+
+
+
+
+
+// Remove a news image only if no other news record uses its URL.
+
+// This protects images that might be shared by multiple news entries.
+
+
+
+async function removeNewsImageIfUnused(imageUrl, excludedNewsId = null) {
+
+    if (!imageUrl) return;
+
+
+
+    const storagePath = getStoragePathFromPublicUrl(
+
+        imageUrl,
+
+        'news-images'
+
+    );
+
+
+
+    if (!storagePath) {
+
+        throw new Error('Could not identify the old news image Storage path.');
+
+    }
+
+
+
+    let query = db
+
+        .from('news')
+
+        .select('id')
+
+        .eq('image_url', imageUrl);
+
+
+
+    if (excludedNewsId !== null) {
+
+        query = query.neq('id', excludedNewsId);
+
+    }
+
+
+
+    const { data, error } = await query.limit(1);
+
+
+
+    if (error) throw error;
+
+
+
+    // Another news record still uses this image.
+
+    if (data && data.length > 0) {
+
+        console.log('Old image kept because another news entry uses it.');
+
+        return;
+
+    }
+
+
+
+    const { error: storageError } = await db.storage
+
+        .from('news-images')
+
+        .remove([storagePath]);
+
+
+
+    if (storageError) throw storageError;
+
+
+
+    console.log('Old news image removed from Storage:', storagePath);
+
+}
+
+
+
+
+
+// Remove a newly uploaded image if saving its news record failed.
+
+// The new upload has a unique path, so it cannot be used by another record.
+
+
+
+async function removeNewlyUploadedNewsImage(imageUrl) {
+
+    if (!imageUrl) return;
+
+
+
+    const storagePath = getStoragePathFromPublicUrl(
+
+        imageUrl,
+
+        'news-images'
+
+    );
+
+
+
+    if (!storagePath) {
+
+        console.warn('Could not identify newly uploaded image path.');
+
+        return;
+
+    }
+
+
+
+    const { error } = await db.storage
+
+        .from('news-images')
+
+        .remove([storagePath]);
+
+
+
+    if (error) {
+
+        console.warn('Could not clean up the new image:', error);
+
+    }
+
+}
+
+
+
+
+
+// ========================================
+
+// UPLOAD NEWS IMAGE
+
+// ========================================
+
+
 
 async function uploadImage(file) {
 
     if (!file) {
+
         return existingImageUrl;
+
     }
+
+
+
+    const optimizedFile = await optimizeImage(file);
+
+
 
     const extension =
-        file.name.split('.').pop().toLowerCase();
+
+        optimizedFile.name.split('.').pop().toLowerCase();
+
+
 
     const filePath =
+
         `${crypto.randomUUID()}.${extension}`;
 
+
+
     const { error } = await db.storage
+
         .from('news-images')
-        .upload(filePath, file, {
-            contentType: file.type,
+
+        .upload(filePath, optimizedFile, {
+
+            contentType: optimizedFile.type,
+
             upsert: false
+
         });
 
-    if (error) {
-        throw error;
-    }
+
+
+    if (error) throw error;
+
+
 
     const { data } = db.storage
+
         .from('news-images')
+
         .getPublicUrl(filePath);
+
+
 
     return data.publicUrl;
 
 }
 
 
+
+
+
 // ========================================
+
 // PUBLISH OR UPDATE NEWS
+
 // ========================================
+
+
 
 newsForm.addEventListener('submit', async function(event) {
 
     event.preventDefault();
 
+
+
     const title = newsTitle.value.trim();
+
     const content = newsContent.value.trim();
+
     const imageFile = newsImage.files[0];
 
+
+
     if (!title || !content) {
+
         status.textContent = 'Please complete all required fields.';
+
         return;
+
     }
+
+
 
     if (imageFile && (
+
         !imageFile.type.startsWith('image/') ||
+
         imageFile.size > 8 * 1024 * 1024
+
     )) {
+
         status.textContent = 'Invalid image or image exceeds 8 MB.';
+
         return;
+
     }
 
+
+
     publishButton.disabled = true;
+
     status.textContent = 'Publishing...';
+
+
+
+    // Save these values before the form is reset.
+
+    const currentEditingId = editingId;
+
+    const oldImageUrl = existingImageUrl;
+
+    const isEditing = currentEditingId !== null;
+
+
+
+    let newlyUploadedImageUrl = null;
+
+
 
     try {
 
         const imageUrl = await uploadImage(imageFile);
 
+
+
+        // Track a new upload so it can be removed if the database save fails.
+
+        if (imageFile) {
+
+            newlyUploadedImageUrl = imageUrl;
+
+        }
+
+
+
         let result;
 
-        if (editingId) {
+
+
+        if (isEditing) {
 
             result = await db
+
                 .from('news')
+
                 .update({
+
                     title: title,
+
                     content: content,
+
                     image_url: imageUrl
+
                 })
-                .eq('id', editingId);
+
+                .eq('id', currentEditingId);
+
+
 
         } else {
 
             result = await db
+
                 .from('news')
+
                 .insert({
+
                     title: title,
+
                     content: content,
+
                     image_url: imageUrl
+
                 });
 
         }
 
+
+
         if (result.error) {
+
             throw result.error;
+
         }
 
+
+
+        // The database now points to the new image.
+
+        // Only now is it safe to try removing the old image.
+
+        let cleanupWarning = '';
+
+
+
+        if (
+
+            isEditing &&
+
+            imageFile &&
+
+            oldImageUrl &&
+
+            oldImageUrl !== imageUrl
+
+        ) {
+
+            try {
+
+                await removeNewsImageIfUnused(
+
+                    oldImageUrl,
+
+                    currentEditingId
+
+                );
+
+            } catch (cleanupError) {
+
+                console.error('Old news image cleanup failed:', cleanupError);
+
+
+
+                cleanupWarning =
+
+                    '\nWarning: The news was saved, but the old image could not be removed from Storage. ' +
+
+                    cleanupError.message;
+
+            }
+
+        }
+
+
+
         status.textContent =
-            editingId ? 'News updated successfully!' :
-            'News published successfully!';
+
+            (isEditing
+
+                ? 'News updated successfully!'
+
+                : 'News published successfully!') +
+
+            cleanupWarning;
+
+
 
         resetForm();
 
         await loadAdminNews();
 
+
+
     } catch (error) {
 
         console.error(error);
 
-        status.textContent =
-            'Error: ' + error.message;
+
+
+        // If the new image was uploaded but the database save failed,
+
+        // remove that unused upload. The old image remains untouched.
+
+        if (newlyUploadedImageUrl) {
+
+            await removeNewlyUploadedNewsImage(newlyUploadedImageUrl);
+
+        }
+
+
+
+        status.textContent = 'Error: ' + error.message;
+
+
 
     } finally {
 
@@ -999,22 +2369,41 @@ newsForm.addEventListener('submit', async function(event) {
 });
 
 
+
+
+
 // ========================================
+
 // RESET FORM
+
 // ========================================
+
+
 
 function resetForm() {
 
+    restoreEditorPanel(newsEditorPanel, newsEditorHome);
     newsForm.reset();
 
+
+
     editingId = null;
+
     existingImageUrl = null;
 
+
+
     preview.style.display = 'none';
+
     preview.removeAttribute('src');
 
+
+
     document.getElementById('form-heading').textContent =
+
         'CREATE NEWS';
+
+
 
     publishButton.textContent = 'PUBLISH NEWS';
 
@@ -1023,81 +2412,132 @@ function resetForm() {
 }
 
 
+
+
+
 // CANCEL EDIT
+
+
 
 cancelEdit.addEventListener('click', function() {
 
     resetForm();
+
     status.textContent = '';
 
 });
 
 
+
+
+
 // ========================================
+
 // LOAD ADMIN NEWS
+
 // ========================================
+
+
 
 async function loadAdminNews() {
 
-    adminNewsList.textContent = 'Loading...';
+    const previousScrollY = window.scrollY;
+    restoreEditorPanel(newsEditorPanel, newsEditorHome);
+    if (!adminNewsList.hasChildNodes()) adminNewsList.textContent = 'Loading...';
+
+
 
     const { data, error } = await db
+
         .from('news')
+
         .select('*')
+
         .order('created_at', { ascending: false });
+
+
 
     if (error) {
 
         adminNewsList.textContent =
+
             'Could not load news: ' + error.message;
 
         return;
 
     }
 
-    adminNewsList.innerHTML = '';
+
+
+    adminNewsList.replaceChildren();
 
     if (!data || data.length === 0) {
 
-        adminNewsList.textContent =
-            'No published news yet.';
+        adminNewsList.textContent = 'No published news yet.';
 
         return;
 
     }
 
+
+
     data.forEach(news => {
 
         const item = document.createElement('div');
+
         item.className = 'admin-news-item';
+        item.dataset.newsId = news.id;
 
         const title = document.createElement('h3');
+
         title.textContent = news.title;
 
+
+
         const date = document.createElement('p');
+
         date.textContent =
+
             new Date(news.created_at).toLocaleString();
 
+
+
         const actions = document.createElement('div');
+
         actions.className = 'admin-news-actions';
 
+
+
         const editButton = document.createElement('button');
+
         editButton.className = 'secondary';
+
         editButton.textContent = 'EDIT';
+
+
 
         editButton.addEventListener('click', function() {
 
             editingId = news.id;
+
             existingImageUrl = news.image_url;
 
+
+
             newsTitle.value = news.title;
+
             newsContent.value = news.content;
 
+
+
             newsImage.value = '';
+
+
 
             if (news.image_url) {
 
                 preview.src = news.image_url;
+
                 preview.style.display = 'block';
 
             } else {
@@ -1106,8 +2546,13 @@ async function loadAdminNews() {
 
             }
 
+
+
             document.getElementById('form-heading')
+
                 .textContent = 'EDIT NEWS';
+
+
 
             publishButton.textContent = 'SAVE CHANGES';
 
@@ -1115,674 +2560,1737 @@ async function loadAdminNews() {
 
             status.textContent = '';
 
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            moveEditorBelow(newsEditorPanel, item);
 
         });
 
+
+
+
+
+        if (news.image_url) {
+            const removePhotoButton = document.createElement('button');
+            removePhotoButton.className = 'danger';
+            removePhotoButton.textContent = 'REMOVE PHOTO';
+            removePhotoButton.addEventListener('click', async function() {
+                if (!confirm(`Remove the photo from "${news.title}"? The news item will remain published.`)) return;
+                removePhotoButton.disabled = true;
+                const previousScrollY = window.scrollY;
+                try {
+                    const { error: updateError } = await db
+                        .from('news')
+                        .update({ image_url: null })
+                        .eq('id', news.id);
+                    if (updateError) throw updateError;
+
+                    let cleanupWarning = '';
+                    try {
+                        await removeNewsImageIfUnused(news.image_url);
+                    } catch (cleanupError) {
+                        cleanupWarning = cleanupError.message;
+                    }
+
+                    if (editingId === news.id) {
+                        existingImageUrl = null;
+                        preview.style.display = 'none';
+                        preview.removeAttribute('src');
+                    }
+                    await loadAdminNews();
+                    window.scrollTo(0, previousScrollY);
+                    if (cleanupWarning) alert('The photo was removed from the news item, but its Storage file could not be deleted: ' + cleanupWarning);
+                } catch (error) {
+                    alert('Could not remove photo: ' + error.message);
+                    removePhotoButton.disabled = false;
+                }
+            });
+            actions.appendChild(removePhotoButton);
+        }
+
+        // DELETE NEWS AND ITS IMAGE
+
+
+
         const deleteButton = document.createElement('button');
+
         deleteButton.className = 'danger';
+
         deleteButton.textContent = 'DELETE';
+
+
 
         deleteButton.addEventListener('click', async function() {
 
             if (!confirm(`Delete "${news.title}"?`)) {
+
                 return;
+
             }
+
+
 
             deleteButton.disabled = true;
 
-            const { error } = await db
-                .from('news')
-                .delete()
-                .eq('id', news.id);
 
-            if (error) {
+
+            try {
+
+                // First delete the database record.
+
+                // If this fails, the image is left untouched.
+
+                const { error: deleteError } = await db
+
+                    .from('news')
+
+                    .delete()
+
+                    .eq('id', news.id);
+
+
+
+                if (deleteError) {
+
+                    throw deleteError;
+
+                }
+
+
+
+                if (editingId === news.id) {
+
+                    resetForm();
+
+                }
+
+
+
+                // The news record is gone. Now remove its image,
+
+                // unless another news record still uses the same URL.
+
+                let cleanupWarning = '';
+
+
+
+                if (news.image_url) {
+
+                    try {
+
+                        await removeNewsImageIfUnused(news.image_url);
+
+                    } catch (cleanupError) {
+
+                        console.error(
+
+                            'Deleted news image cleanup failed:',
+
+                            cleanupError
+
+                        );
+
+
+
+                        cleanupWarning =
+
+                            '\nThe news was deleted, but its image could not be removed from Storage: ' +
+
+                            cleanupError.message;
+
+                    }
+
+                }
+
+
+
+                await loadAdminNews();
+
+
+
+                if (cleanupWarning) {
+
+                    alert('News deleted successfully.' + cleanupWarning);
+
+                }
+
+
+
+            } catch (error) {
 
                 alert('Could not delete news: ' + error.message);
 
                 deleteButton.disabled = false;
-                return;
 
             }
-
-            if (editingId === news.id) {
-                resetForm();
-            }
-
-            await loadAdminNews();
 
         });
 
+
+
         actions.appendChild(editButton);
+
         actions.appendChild(deleteButton);
 
+
+
         item.appendChild(title);
+
         item.appendChild(date);
+
+        if (news.image_url) {
+            const imageSelection = document.createElement('label');
+            imageSelection.style.cssText = 'display:flex; align-items:center; gap:7px; margin:0 0 10px; color:#aab5c0; font-size:10px;';
+            imageSelection.textContent = 'SELECT PHOTO';
+
+            const imageCheckbox = document.createElement('input');
+            imageCheckbox.type = 'checkbox';
+            imageCheckbox.dataset.newsImageId = news.id;
+            imageCheckbox.style.cssText = 'width:auto; margin:0; padding:0; accent-color:#8296aa;';
+            imageSelection.prepend(imageCheckbox);
+            item.appendChild(imageSelection);
+        }
+
         item.appendChild(actions);
 
         adminNewsList.appendChild(item);
 
     });
 
+    // Restore an active news editor below its matching item after list refreshes.
+    if (editingId !== null) {
+        const editingItem = adminNewsList.querySelector(`[data-news-id="${CSS.escape(String(editingId))}"]`);
+        if (editingItem) editingItem.appendChild(newsEditorPanel);
+    }
+
+    // Remove selected news photos in one operation, without deleting the news entries.
+    const selectedPhotosButton = document.createElement('button');
+    selectedPhotosButton.className = 'danger';
+    selectedPhotosButton.type = 'button';
+    selectedPhotosButton.textContent = 'REMOVE SELECTED PHOTOS (0)';
+    selectedPhotosButton.disabled = true;
+    selectedPhotosButton.style.marginBottom = '12px';
+
+    const updateSelectedNewsPhotosButton = () => {
+        const count = adminNewsList.querySelectorAll('input[data-news-image-id]:checked').length;
+        selectedPhotosButton.textContent = `REMOVE SELECTED PHOTOS (${count})`;
+        selectedPhotosButton.disabled = count === 0;
+    };
+
+    adminNewsList.querySelectorAll('input[data-news-image-id]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedNewsPhotosButton);
+    });
+
+    selectedPhotosButton.addEventListener('click', async () => {
+        const selectedIds = Array.from(adminNewsList.querySelectorAll('input[data-news-image-id]:checked'))
+            .map(checkbox => checkbox.dataset.newsImageId);
+        const selectedNews = data.filter(news => selectedIds.includes(String(news.id)));
+        if (!selectedNews.length) return;
+        if (!confirm(`Remove photos from ${selectedNews.length} selected news item(s)? The news itself will remain published.`)) return;
+
+        selectedPhotosButton.disabled = true;
+        try {
+            const { error: updateError } = await db
+                .from('news')
+                .update({ image_url: null })
+                .in('id', selectedNews.map(news => news.id));
+            if (updateError) throw updateError;
+
+            const cleanupErrors = [];
+            for (const news of selectedNews) {
+                if (!news.image_url) continue;
+                try {
+                    await removeNewsImageIfUnused(news.image_url);
+                } catch (cleanupError) {
+                    cleanupErrors.push(cleanupError.message);
+                }
+            }
+
+            await loadAdminNews();
+            if (cleanupErrors.length) alert('Photos were removed from the news entries, but some Storage files could not be deleted:\n' + cleanupErrors.join('\n'));
+        } catch (error) {
+            alert('Could not remove selected news photos: ' + error.message);
+            selectedPhotosButton.disabled = false;
+        }
+    });
+
+    adminNewsList.insertBefore(selectedPhotosButton, adminNewsList.firstChild);
+
     applyShowMore(adminNewsList, '.admin-news-item', 5);
+    window.scrollTo(0, previousScrollY);
+
 }
 
 
 
+
+
 // ========================================
+
 // FRONTLINE DATE ARCHIVE MANAGEMENT
+
 // ========================================
+
+
 
 function formatArchiveDate(dateString) {
+
     const date = new Date(`${dateString}T00:00:00`);
+
+
+
     if (Number.isNaN(date.getTime())) return dateString;
+
+
+
     return date.toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric'
+
+        year: 'numeric',
+
+        month: 'long',
+
+        day: 'numeric'
+
     });
+
 }
 
+
+
+
+
 mapArchiveForm.addEventListener('submit', async function(event) {
+
     event.preventDefault();
 
+
+
     const date = mapArchiveDate.value;
+
     const file = mapArchiveFile.files[0];
 
+
+
     if (!date || !file) {
+
         mapArchiveStatus.textContent = 'Choose a date and a GeoJSON file.';
+
         return;
+
     }
+
+
 
     if (file.size > 25 * 1024 * 1024) {
+
         mapArchiveStatus.textContent = 'The GeoJSON file must be 25 MB or smaller.';
+
         return;
+
     }
+
+
 
     let geojson;
+
+
+
     try {
+
         geojson = JSON.parse(await file.text());
-        if (!geojson || geojson.type !== 'FeatureCollection' || !Array.isArray(geojson.features)) {
+
+
+
+        if (
+
+            !geojson ||
+
+            geojson.type !== 'FeatureCollection' ||
+
+            !Array.isArray(geojson.features)
+
+        ) {
+
             throw new Error('The file must contain a GeoJSON FeatureCollection.');
+
         }
+
+
+
     } catch (error) {
+
         mapArchiveStatus.textContent = 'Invalid GeoJSON: ' + error.message;
+
         return;
+
     }
 
+
+
     saveMapVersionButton.disabled = true;
+
     mapArchiveStatus.textContent = 'Uploading map...';
+
+
 
     let uploadedPath = null;
 
+
+
     try {
+
         const { data: existing, error: lookupError } = await db
+
             .from('frontline_maps')
+
             .select('id, storage_path, title')
+
             .eq('map_date', date)
+
             .maybeSingle();
+
+
 
         if (lookupError) throw lookupError;
 
-        if (existing && !confirm(`A map for ${formatArchiveDate(date)} already exists. Replace that date's map? The old file will be removed after the new one is saved.`)) {
-            mapArchiveStatus.textContent = 'Upload cancelled. Existing map was kept.';
+
+
+        if (
+
+            existing &&
+
+            !confirm(
+
+                `A map for ${formatArchiveDate(date)} already exists. ` +
+
+                `Replace that date's map? The old file will be removed after the new one is saved.`
+
+            )
+
+        ) {
+
+            mapArchiveStatus.textContent =
+
+                'Upload cancelled. Existing map was kept.';
+
             return;
+
         }
+
+
 
         uploadedPath = `${date}/${crypto.randomUUID()}.geojson`;
 
+
+
         // Some Windows browsers report .geojson files as application/octet-stream.
+
         // Re-wrap the bytes with an allowed, explicit MIME type before uploading.
+
         const geoJsonUpload = new Blob(
+
             [await file.arrayBuffer()],
+
             { type: 'application/json' }
+
         );
 
+
+
         const { error: uploadError } = await db.storage
+
             .from('frontline-maps')
+
             .upload(uploadedPath, geoJsonUpload, {
+
                 contentType: 'application/json',
+
                 upsert: false
+
             });
+
+
 
         if (uploadError) throw uploadError;
 
-        const title = mapArchiveTitle.value.trim() || `Frontline — ${formatArchiveDate(date)}`;
+
+
+        const title = mapArchiveTitle.value.trim() ||
+
+            `Frontline — ${formatArchiveDate(date)}`;
+
+
+
         let saveResult;
 
+
+
         if (existing) {
+
             saveResult = await db
+
                 .from('frontline_maps')
-                .update({ title, storage_path: uploadedPath, updated_at: new Date().toISOString() })
+
+                .update({
+
+                    title,
+
+                    storage_path: uploadedPath,
+
+                    updated_at: new Date().toISOString()
+
+                })
+
                 .eq('id', existing.id);
+
+
+
         } else {
+
             saveResult = await db
+
                 .from('frontline_maps')
-                .insert({ map_date: date, title, storage_path: uploadedPath });
+
+                .insert({
+
+                    map_date: date,
+
+                    title,
+
+                    storage_path: uploadedPath
+
+                });
+
         }
+
+
 
         if (saveResult.error) throw saveResult.error;
 
+
+
         if (existing?.storage_path) {
+
             const { error: removeOldError } = await db.storage
+
                 .from('frontline-maps')
+
                 .remove([existing.storage_path]);
-            if (removeOldError) console.warn('Old map file could not be removed:', removeOldError);
+
+
+
+            if (removeOldError) {
+
+                console.warn(
+
+                    'Old map file could not be removed:',
+
+                    removeOldError
+
+                );
+
+            }
+
         }
+
+
 
         mapArchiveForm.reset();
-        mapArchiveStatus.textContent = `Saved successfully: ${formatArchiveDate(date)}.`;
+
+
+
+        mapArchiveStatus.textContent =
+
+            `Saved successfully: ${formatArchiveDate(date)}.`;
+
+
+
         await loadAdminMapArchive();
 
+
+
     } catch (error) {
+
         console.error('Map archive upload error:', error);
+
+
+
         if (uploadedPath) {
-            await db.storage.from('frontline-maps').remove([uploadedPath]);
+
+            await db.storage
+
+                .from('frontline-maps')
+
+                .remove([uploadedPath]);
+
         }
-        mapArchiveStatus.textContent = 'Could not save map: ' + error.message;
+
+
+
+        mapArchiveStatus.textContent =
+
+            'Could not save map: ' + error.message;
+
+
+
     } finally {
+
         saveMapVersionButton.disabled = false;
+
     }
+
 });
 
+
+
+
+
 async function loadAdminMapArchive() {
+
     adminMapArchiveList.textContent = 'Loading saved maps...';
 
+
+
     try {
+
         const { data, error } = await db
+
             .from('frontline_maps')
+
             .select('id, map_date, title, storage_path, created_at')
+
             .order('map_date', { ascending: false });
+
+
 
         if (error) throw error;
 
+
+
         adminMapArchiveList.replaceChildren();
 
+
+
         if (!data || data.length === 0) {
-            adminMapArchiveList.textContent = 'No archived maps yet. Add the August 8 and November 22 versions above.';
+
+            adminMapArchiveList.textContent =
+
+                'No archived maps yet. Add the August 8 and November 22 versions above.';
+
             return;
+
         }
 
+
+
         data.forEach(record => {
+
             const item = document.createElement('div');
+
             item.className = 'map-archive-item';
 
+
+
             const heading = document.createElement('h3');
-            heading.textContent = record.title || formatArchiveDate(record.map_date);
+
+            heading.textContent =
+
+                record.title || formatArchiveDate(record.map_date);
+
+
 
             const info = document.createElement('p');
-            info.textContent = `Map date: ${formatArchiveDate(record.map_date)}`;
+
+            info.textContent =
+
+                `Map date: ${formatArchiveDate(record.map_date)}`;
+
+
 
             const removeButton = document.createElement('button');
+
             removeButton.className = 'danger';
+
             removeButton.textContent = 'DELETE VERSION';
+
+
+
             removeButton.addEventListener('click', async function() {
-                if (!confirm(`Delete the archived map for ${formatArchiveDate(record.map_date)}? This cannot be undone.`)) return;
+
+                if (!confirm(
+
+                    `Delete the archived map for ${formatArchiveDate(record.map_date)}? This cannot be undone.`
+
+                )) return;
+
+
 
                 removeButton.disabled = true;
+
+
+
                 try {
+
                     const { error: storageError } = await db.storage
+
                         .from('frontline-maps')
+
                         .remove([record.storage_path]);
+
+
+
                     if (storageError) throw storageError;
 
+
+
                     const { error: rowError } = await db
+
                         .from('frontline_maps')
+
                         .delete()
+
                         .eq('id', record.id);
+
+
+
                     if (rowError) throw rowError;
 
+
+
                     await loadAdminMapArchive();
+
+
+
                 } catch (error) {
+
                     alert('Could not delete map version: ' + error.message);
+
                     removeButton.disabled = false;
+
                 }
+
             });
 
+
+
             item.appendChild(heading);
+
             item.appendChild(info);
+
             item.appendChild(removeButton);
+
+
+
             adminMapArchiveList.appendChild(item);
+
         });
 
+
+
         applyShowMore(adminMapArchiveList, '.map-archive-item', 5);
+
+
+
     } catch (error) {
+
         console.error('Could not load map archive:', error);
-        adminMapArchiveList.textContent = 'Could not load saved maps: ' + error.message;
+
+
+
+        adminMapArchiveList.textContent =
+
+            'Could not load saved maps: ' + error.message;
+
     }
+
 }
 
 
+
+
+
 // ========================================
+
 // ABOUT US: CHAPTER MANAGEMENT
+
 // ========================================
+
+
 
 function resetChapterForm() {
+
+    restoreEditorPanel(chapterEditorPanel, chapterEditorHome);
     chapterForm.reset();
+
     editingChapterId = null;
 
+
+
     document.getElementById('chapter-form-heading').textContent =
+
         'CREATE HISTORY CHAPTER';
 
+
+
     saveChapterButton.textContent = 'PUBLISH CHAPTER';
+
     cancelChapterEdit.style.display = 'none';
+
     chapterStatus.textContent = '';
+
 }
+
+
 
 cancelChapterEdit.addEventListener('click', resetChapterForm);
 
 
+
+
+
 // Upload all selected chapter photos to the chapter-images bucket.
+
+
+
 async function uploadChapterImages(files, chapterId) {
+
     const uploadedRows = [];
 
+
+
     for (const file of files) {
+
         if (!file.type.startsWith('image/')) {
+
             throw new Error(`"${file.name}" is not a supported image.`);
+
         }
+
+
 
         if (file.size > 8 * 1024 * 1024) {
+
             throw new Error(`"${file.name}" is larger than 8 MB.`);
+
         }
 
-        const extension = file.name.includes('.')
-            ? file.name.split('.').pop().toLowerCase()
+
+
+        // Compress the image before uploading.
+
+        const optimizedFile = await optimizeImage(file);
+
+
+
+        const extension = optimizedFile.name.includes('.')
+
+            ? optimizedFile.name.split('.').pop().toLowerCase()
+
             : 'jpg';
 
+
+
         const storagePath =
+
             `${chapterId}/${crypto.randomUUID()}.${extension}`;
 
+
+
         const { error: uploadError } = await db.storage
+
             .from('chapter-images')
-            .upload(storagePath, file, {
-                contentType: file.type,
+
+            .upload(storagePath, optimizedFile, {
+
+                contentType: optimizedFile.type,
+
                 upsert: false
+
             });
 
-        if (uploadError) {
-            throw uploadError;
-        }
+
+
+        if (uploadError) throw uploadError;
+
+
 
         const { data: publicUrlData } = db.storage
+
             .from('chapter-images')
+
             .getPublicUrl(storagePath);
 
+
+
         uploadedRows.push({
+
             chapter_id: chapterId,
+
             image_url: publicUrlData.publicUrl,
+
             storage_path: storagePath
+
         });
+
     }
+
+
 
     if (uploadedRows.length > 0) {
+
         const { error: insertError } = await db
+
             .from('chapter_images')
+
             .insert(uploadedRows);
 
+
+
         if (insertError) {
-            // Remove the files just uploaded if their database records failed.
+
             await db.storage
+
                 .from('chapter-images')
+
                 .remove(uploadedRows.map(row => row.storage_path));
 
+
+
             throw insertError;
+
         }
+
     }
+
 }
+
+
+
 
 
 // Create a new chapter or update the chapter currently being edited.
+
+
+
 chapterForm.addEventListener('submit', async function(event) {
+
     event.preventDefault();
 
+
+
     const title = chapterTitle.value.trim();
+
     const content = chapterContent.value.trim();
+
     const files = Array.from(chapterImagesInput.files || []);
 
+
+
     if (!title) {
+
         chapterStatus.textContent = 'Please enter a chapter title.';
+
         return;
+
     }
+
+
 
     for (const file of files) {
-        if (!file.type.startsWith('image/') ||
-            file.size > 8 * 1024 * 1024) {
+
+        if (
+
+            !file.type.startsWith('image/') ||
+
+            file.size > 8 * 1024 * 1024
+
+        ) {
+
             chapterStatus.textContent =
+
                 `Invalid image: ${file.name}. Use an image no larger than 8 MB.`;
+
             return;
+
         }
+
     }
 
+
+
     saveChapterButton.disabled = true;
+
     chapterStatus.textContent = 'Saving chapter...';
 
+
+
     let chapterId = editingChapterId;
+
     let createdNewChapter = false;
 
+
+
     try {
+
         if (editingChapterId) {
+
             const { error } = await db
+
                 .from('chapters')
+
                 .update({
+
                     title: title,
+
                     content: content
+
                 })
+
                 .eq('id', editingChapterId);
 
+
+
             if (error) throw error;
+
+
+
         } else {
+
             const { data: existingChapters, error: orderError } = await db
+
                 .from('chapters')
+
                 .select('sort_order')
+
                 .order('sort_order', { ascending: false })
+
                 .limit(1);
+
+
 
             if (orderError) throw orderError;
 
+
+
             const nextOrder = existingChapters && existingChapters.length
+
                 ? (existingChapters[0].sort_order || 0) + 1
+
                 : 0;
 
+
+
             const { data, error } = await db
+
                 .from('chapters')
+
                 .insert({
+
                     title: title,
+
                     content: content,
+
                     sort_order: nextOrder
+
                 })
+
                 .select('id')
+
                 .single();
+
+
 
             if (error) throw error;
 
+
+
             chapterId = data.id;
+
             createdNewChapter = true;
+
         }
+
+
 
         await uploadChapterImages(files, chapterId);
 
+
+
         chapterStatus.textContent = editingChapterId
+
             ? 'Chapter updated successfully!'
+
             : 'Chapter published successfully!';
 
+
+
         resetChapterForm();
+
         await loadAdminChapters();
 
+
+
     } catch (error) {
+
         console.error('Chapter save error:', error);
 
+
+
         // If creation succeeded but image upload failed, keep the chapter record.
+
         // It can be edited later and the photos can be uploaded again.
+
         chapterStatus.textContent =
+
             'Error: ' + error.message +
+
             (createdNewChapter
+
                 ? '\nThe chapter itself was created. You can edit it and try uploading the photos again.'
+
                 : '');
+
+
+
     } finally {
+
         saveChapterButton.disabled = false;
+
     }
+
 });
 
 
+
+
+
 // Load chapters and their photos for the admin list.
+
+
+
 async function loadAdminChapters() {
-    adminChaptersList.textContent = 'Loading chapters...';
+    const previousScrollY = window.scrollY;
+    restoreEditorPanel(chapterEditorPanel, chapterEditorHome);
+    // Keep the current list rendered while refreshing to prevent the page from collapsing.
+    if (!adminChaptersList.hasChildNodes()) {
+        adminChaptersList.textContent = 'Loading chapters...';
+    }
+
+
 
     try {
+
         const { data: chapters, error: chaptersError } = await db
+
             .from('chapters')
+
             .select('*')
+
             .order('sort_order', { ascending: true })
+
             .order('created_at', { ascending: true });
+
+
 
         if (chaptersError) throw chaptersError;
 
+
+
         if (!chapters || chapters.length === 0) {
-            adminChaptersList.textContent = 'No history chapters published yet.';
+
+            adminChaptersList.textContent =
+
+                'No history chapters published yet.';
+
             return;
+
         }
+
+
 
         const chapterIds = chapters.map(chapter => chapter.id);
 
+
+
         const { data: images, error: imagesError } = await db
+
             .from('chapter_images')
+
             .select('*')
+
             .in('chapter_id', chapterIds)
+
             .order('sort_order', { ascending: true })
+
             .order('created_at', { ascending: true });
+
+
 
         if (imagesError) throw imagesError;
 
+
+
         renderAdminChapters(chapters, images || []);
 
+        // Keep the admin at the same position after the chapter list refreshes.
+        window.scrollTo(0, previousScrollY);
+
     } catch (error) {
+
         console.error('Error loading chapters:', error);
+
+
+
         adminChaptersList.textContent =
+
             'Could not load chapters: ' + error.message;
+
     }
+
 }
 
 
+
+
+
 function renderAdminChapters(chapters, images) {
+
     adminChaptersList.replaceChildren();
 
+
+
     chapters.forEach((chapter, index) => {
+
         const item = document.createElement('div');
+
         item.className = 'chapter-admin-item';
+        item.dataset.chapterId = chapter.id;
 
         const title = document.createElement('h3');
-        title.textContent = `CHAPTER ${String(index + 1).padStart(2, '0')} — ${chapter.title}`;
+
+        title.textContent =
+
+            `CHAPTER ${String(index + 1).padStart(2, '0')} — ${chapter.title}`;
+
+
 
         const content = document.createElement('p');
+
         const excerpt = chapter.content || '';
+
+
+
         content.textContent = excerpt.length > 220
+
             ? excerpt.slice(0, 220) + '...'
+
             : excerpt;
 
+
+
         const chapterImages = images.filter(
+
             image => image.chapter_id === chapter.id
+
         );
+
+
 
         const imageList = document.createElement('div');
         imageList.className = 'chapter-image-list';
 
-        chapterImages.forEach(imageData => {
-            const imageItem = document.createElement('div');
-            imageItem.className = 'chapter-image-item';
+        const selectedImageIds = new Set();
 
-            const image = document.createElement('img');
-            image.src = imageData.image_url;
-            image.alt = chapter.title;
-            image.loading = 'lazy';
+        const removeSelectedButton = document.createElement('button');
+        removeSelectedButton.className = 'danger';
+        removeSelectedButton.textContent = 'REMOVE SELECTED PHOTOS (0)';
+        removeSelectedButton.disabled = true;
 
-            const deleteImageButton = document.createElement('button');
-            deleteImageButton.className = 'danger';
-            deleteImageButton.textContent = 'REMOVE PHOTO';
+        const updateSelectedButton = () => {
+            const selectedCount = selectedImageIds.size;
+            removeSelectedButton.textContent =
+                `REMOVE SELECTED PHOTOS (${selectedCount})`;
+            removeSelectedButton.disabled = selectedCount === 0;
+        };
 
-            deleteImageButton.addEventListener('click', async function() {
-                if (!confirm('Remove this photo from the chapter?')) return;
+        removeSelectedButton.addEventListener('click', async function() {
+            const selectedImages = chapterImages.filter(imageData =>
+                selectedImageIds.has(imageData.id)
+            );
 
-                deleteImageButton.disabled = true;
+            if (selectedImages.length === 0) return;
 
-                try {
-                    const { error: storageError } = await db.storage
-                        .from('chapter-images')
-                        .remove([imageData.storage_path]);
+            if (!confirm(
+                `Remove ${selectedImages.length} selected photo(s) from this chapter? This cannot be undone.`
+            )) return;
 
-                    if (storageError) throw storageError;
-
-                    const { error: rowError } = await db
-                        .from('chapter_images')
-                        .delete()
-                        .eq('id', imageData.id);
-
-                    if (rowError) throw rowError;
-
-                    await loadAdminChapters();
-                } catch (error) {
-                    alert('Could not remove photo: ' + error.message);
-                    deleteImageButton.disabled = false;
-                }
-            });
-
-            imageItem.appendChild(image);
-            imageItem.appendChild(deleteImageButton);
-            imageList.appendChild(imageItem);
-        });
-
-        const actions = document.createElement('div');
-        actions.className = 'chapter-admin-actions';
-
-        const editButton = document.createElement('button');
-        editButton.className = 'secondary';
-        editButton.textContent = 'EDIT';
-
-        editButton.addEventListener('click', function() {
-            editingChapterId = chapter.id;
-            chapterTitle.value = chapter.title || '';
-            chapterContent.value = chapter.content || '';
-            chapterImagesInput.value = '';
-
-            document.getElementById('chapter-form-heading').textContent =
-                'EDIT HISTORY CHAPTER';
-
-            saveChapterButton.textContent = 'SAVE CHANGES';
-            cancelChapterEdit.style.display = 'inline-block';
-            chapterStatus.textContent =
-                'Select additional photos if you want to add them. Existing photos are shown below.';
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        const upButton = document.createElement('button');
-        upButton.className = 'secondary';
-        upButton.textContent = 'MOVE UP';
-        upButton.disabled = index === 0;
-        upButton.addEventListener('click', async function() {
-            await moveChapter(chapters, index, -1, upButton);
-        });
-
-        const downButton = document.createElement('button');
-        downButton.className = 'secondary';
-        downButton.textContent = 'MOVE DOWN';
-        downButton.disabled = index === chapters.length - 1;
-        downButton.addEventListener('click', async function() {
-            await moveChapter(chapters, index, 1, downButton);
-        });
-
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'danger';
-        deleteButton.textContent = 'DELETE';
-
-        deleteButton.addEventListener('click', async function() {
-            if (!confirm(`Delete chapter "${chapter.title}" and all its photos? This cannot be undone.`)) {
-                return;
-            }
-
-            deleteButton.disabled = true;
+            removeSelectedButton.disabled = true;
 
             try {
-                const { data: chapterImageRows, error: fetchError } = await db
-                    .from('chapter_images')
-                    .select('storage_path')
-                    .eq('chapter_id', chapter.id);
-
-                if (fetchError) throw fetchError;
-
-                const paths = (chapterImageRows || [])
-                    .map(row => row.storage_path)
+                const storagePaths = selectedImages
+                    .map(imageData => imageData.storage_path)
                     .filter(Boolean);
 
-                if (paths.length > 0) {
+                if (storagePaths.length > 0) {
                     const { error: storageError } = await db.storage
                         .from('chapter-images')
-                        .remove(paths);
+                        .remove(storagePaths);
 
                     if (storageError) throw storageError;
                 }
 
-                const { error: deleteError } = await db
-                    .from('chapters')
+                const selectedIds = selectedImages.map(imageData => imageData.id);
+
+                const { error: rowError } = await db
+                    .from('chapter_images')
                     .delete()
-                    .eq('id', chapter.id);
+                    .in('id', selectedIds);
 
-                if (deleteError) throw deleteError;
-
-                if (editingChapterId === chapter.id) {
-                    resetChapterForm();
-                }
+                if (rowError) throw rowError;
 
                 await loadAdminChapters();
 
             } catch (error) {
-                alert('Could not delete chapter: ' + error.message);
-                deleteButton.disabled = false;
+                alert('Could not remove selected photos: ' + error.message);
+                removeSelectedButton.disabled = false;
             }
         });
 
+        chapterImages.forEach(imageData => {
+
+            const imageItem = document.createElement('div');
+
+            imageItem.className = 'chapter-image-item';
+
+
+
+            const image = document.createElement('img');
+
+            image.src = imageData.image_url;
+
+            image.alt = chapter.title;
+            image.loading = 'lazy';
+
+            const selectLabel = document.createElement('label');
+            selectLabel.style.cssText =
+                'display:flex; align-items:center; gap:6px; margin-bottom:7px; color:#aab5c0; font-size:10px;';
+            selectLabel.textContent = 'SELECT';
+
+            const selectCheckbox = document.createElement('input');
+            selectCheckbox.type = 'checkbox';
+            selectCheckbox.style.cssText =
+                'width:auto; margin:0; padding:0; accent-color:#8296aa;';
+            selectCheckbox.addEventListener('change', function() {
+                if (selectCheckbox.checked) {
+                    selectedImageIds.add(imageData.id);
+                } else {
+                    selectedImageIds.delete(imageData.id);
+                }
+                updateSelectedButton();
+            });
+
+            selectLabel.prepend(selectCheckbox);
+
+            const deleteImageButton = document.createElement('button');
+
+            deleteImageButton.className = 'danger';
+
+            deleteImageButton.textContent = 'REMOVE PHOTO';
+
+
+
+            deleteImageButton.addEventListener('click', async function() {
+
+                if (!confirm('Remove this photo from the chapter?')) return;
+
+
+
+                deleteImageButton.disabled = true;
+
+
+
+                const previousScrollY = window.scrollY;
+
+                try {
+
+                    const { error: storageError } = await db.storage
+
+                        .from('chapter-images')
+
+                        .remove([imageData.storage_path]);
+
+
+
+                    if (storageError) throw storageError;
+
+
+
+                    const { error: rowError } = await db
+
+                        .from('chapter_images')
+
+                        .delete()
+
+                        .eq('id', imageData.id);
+
+
+
+                    if (rowError) throw rowError;
+
+
+
+                    await loadAdminChapters();
+                    window.scrollTo(0, previousScrollY);
+
+                } catch (error) {
+                    alert('Could not remove photo: ' + error.message);
+
+                    deleteImageButton.disabled = false;
+
+                }
+
+            });
+
+
+
+            imageItem.appendChild(selectLabel);
+            imageItem.appendChild(image);
+            imageItem.appendChild(deleteImageButton);
+
+            imageList.appendChild(imageItem);
+
+        });
+
+
+
+
+
+        const actions = document.createElement('div');
+
+        actions.className = 'chapter-admin-actions';
+
+
+
+        const editButton = document.createElement('button');
+
+        editButton.className = 'secondary';
+
+        editButton.textContent = 'EDIT';
+
+
+
+        editButton.addEventListener('click', function() {
+
+            editingChapterId = chapter.id;
+
+            chapterTitle.value = chapter.title || '';
+
+            chapterContent.value = chapter.content || '';
+
+            chapterImagesInput.value = '';
+
+
+
+            document.getElementById('chapter-form-heading').textContent =
+
+                'EDIT HISTORY CHAPTER';
+
+
+
+            saveChapterButton.textContent = 'SAVE CHANGES';
+
+            cancelChapterEdit.style.display = 'inline-block';
+
+
+
+            chapterStatus.textContent =
+
+                'Select additional photos if you want to add them. Existing photos are shown below.';
+
+            moveEditorBelow(chapterEditorPanel, item);
+
+        });
+
+
+
+
+
+        const upButton = document.createElement('button');
+
+        upButton.className = 'secondary';
+
+        upButton.textContent = 'MOVE UP';
+
+        upButton.disabled = index === 0;
+
+
+
+        upButton.addEventListener('click', async function() {
+
+            await moveChapter(chapters, index, -1, upButton);
+
+        });
+
+
+
+
+
+        const downButton = document.createElement('button');
+
+        downButton.className = 'secondary';
+
+        downButton.textContent = 'MOVE DOWN';
+
+        downButton.disabled = index === chapters.length - 1;
+
+
+
+        downButton.addEventListener('click', async function() {
+
+            await moveChapter(chapters, index, 1, downButton);
+
+        });
+
+
+
+
+
+        const deleteButton = document.createElement('button');
+
+        deleteButton.className = 'danger';
+
+        deleteButton.textContent = 'DELETE';
+
+
+
+        deleteButton.addEventListener('click', async function() {
+
+            if (!confirm(
+
+                `Delete chapter "${chapter.title}" and all its photos? This cannot be undone.`
+
+            )) {
+
+                return;
+
+            }
+
+
+
+            deleteButton.disabled = true;
+
+
+
+            try {
+
+                const { data: chapterImageRows, error: fetchError } = await db
+
+                    .from('chapter_images')
+
+                    .select('storage_path')
+
+                    .eq('chapter_id', chapter.id);
+
+
+
+                if (fetchError) throw fetchError;
+
+
+
+                const paths = (chapterImageRows || [])
+
+                    .map(row => row.storage_path)
+
+                    .filter(Boolean);
+
+
+
+                if (paths.length > 0) {
+
+                    const { error: storageError } = await db.storage
+
+                        .from('chapter-images')
+
+                        .remove(paths);
+
+
+
+                    if (storageError) throw storageError;
+
+                }
+
+
+
+                const { error: deleteError } = await db
+
+                    .from('chapters')
+
+                    .delete()
+
+                    .eq('id', chapter.id);
+
+
+
+                if (deleteError) throw deleteError;
+
+
+
+                if (editingChapterId === chapter.id) {
+
+                    resetChapterForm();
+
+                }
+
+
+
+                await loadAdminChapters();
+
+
+
+            } catch (error) {
+
+                alert('Could not delete chapter: ' + error.message);
+
+                deleteButton.disabled = false;
+
+            }
+
+        });
+
+
+
+
+
         actions.appendChild(editButton);
+
         actions.appendChild(upButton);
+
         actions.appendChild(downButton);
+
         actions.appendChild(deleteButton);
 
+
+
         item.appendChild(title);
+
         item.appendChild(content);
+
+
 
         if (chapterImages.length > 0) {
             item.appendChild(imageList);
+
+            const photoActions = document.createElement('div');
+            photoActions.className = 'chapter-admin-actions';
+            photoActions.appendChild(removeSelectedButton);
+            item.appendChild(photoActions);
         }
 
         item.appendChild(actions);
+
         adminChaptersList.appendChild(item);
+
     });
 
+    if (editingChapterId !== null) {
+        const editingItem = adminChaptersList.querySelector(`[data-chapter-id="${CSS.escape(String(editingChapterId))}"]`);
+        if (editingItem) editingItem.appendChild(chapterEditorPanel);
+    }
+
     applyShowMore(adminChaptersList, '.chapter-admin-item', 5);
+
 }
+
+
+
 
 
 // Reorder chapters by swapping their sort_order values.
+
+
+
 async function moveChapter(chapters, index, direction, button) {
+
     const otherIndex = index + direction;
+
+
 
     if (otherIndex < 0 || otherIndex >= chapters.length) return;
 
+
+
     button.disabled = true;
 
+
+
     const current = chapters[index];
+
     const other = chapters[otherIndex];
 
+
+
     try {
+
         const { error: firstError } = await db
+
             .from('chapters')
+
             .update({ sort_order: other.sort_order })
+
             .eq('id', current.id);
+
+
 
         if (firstError) throw firstError;
 
+
+
         const { error: secondError } = await db
+
             .from('chapters')
+
             .update({ sort_order: current.sort_order })
+
             .eq('id', other.id);
+
+
 
         if (secondError) throw secondError;
 
+
+
         await loadAdminChapters();
 
+
+
     } catch (error) {
+
         alert('Could not change chapter order: ' + error.message);
+
         await loadAdminChapters();
+
     }
+
 }
 
 
+
+
+
 // ========================================
+
 // INITIALIZE
+
 // ========================================
+
+
 
 checkAdmin();
 
+
+
 </script>
 
+
+
 </body>
+
 </html>

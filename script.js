@@ -19,10 +19,22 @@ const db = window.supabase.createClient(
 // CREATE MAP
 // ========================================
 
-const map = L.map('map').setView([33.8, 35.8], 8);
+// Minimum zoom prevents excessive zooming out.
+const map = L.map('map', {
+    minZoom: 3,
+    maxZoom: 19,
+    maxBounds: [
+        [-85, -180],
+        [85, 180]
+    ],
+    maxBoundsViscosity: 1.0
+}).setView([33.8, 35.8], 8);
 
+
+// noWrap prevents repeated copies of the world.
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
+    noWrap: true,
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
@@ -82,11 +94,10 @@ function renderFrontline(data) {
         }
     }).addTo(map);
 
-    const bounds = frontlineLayer.getBounds();
-
-    if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [20, 20] });
-    }
+    // IMPORTANT:
+    // Do not use fitBounds here.
+    // The map position and zoom must remain unchanged
+    // when switching between archived dates.
 }
 
 async function showSelectedMap() {
@@ -118,7 +129,17 @@ async function showSelectedMap() {
             );
         }
 
+        // Save the current map position and zoom.
+        const currentCenter = map.getCenter();
+        const currentZoom = map.getZoom();
+
+        // Replace only the frontline layer.
         renderFrontline(geojson);
+
+        // Restore the exact same map position and zoom.
+        map.setView(currentCenter, currentZoom, {
+            animate: false
+        });
 
         mapDateLabel.textContent =
             formatMapDate(selected.map_date);
