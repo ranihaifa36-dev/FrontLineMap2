@@ -980,8 +980,6 @@
 
                     <h2>PUBLISHED NEWS</h2>
 
-                    <button type="button" class="secondary" id="migrate-news-cache-button">UPDATE EXISTING NEWS PHOTO CACHE</button>
-                    <div id="migrate-news-cache-status" role="status" style="margin:10px 0;"></div>
                     <div id="admin-news-list">Loading...</div>
 
                 </div>
@@ -1238,8 +1236,6 @@
 
                     <h2>PUBLISHED HISTORY CHAPTERS</h2>
 
-                    <button type="button" class="secondary" id="migrate-chapter-cache-button">UPDATE EXISTING CHAPTER PHOTO CACHE</button>
-                    <div id="migrate-chapter-cache-status" role="status" style="margin:10px 0;"></div>
                     <div id="admin-chapters-list">Loading chapters...</div>
 
                 </div>
@@ -3477,99 +3473,6 @@ async function uploadChapterImages(files, chapterId) {
 // Create a new chapter or update the chapter currently being edited.
 
 
-
-// ========================================
-// UPDATE CACHE SETTINGS FOR EXISTING PHOTOS
-// ========================================
-
-const CACHE_TTL_SECONDS = '2592000'; // 30 days
-
-async function refreshExistingPhotoCache(bucketName, storagePath, publicUrl) {
-    if (!storagePath || !publicUrl) throw new Error('Missing Storage path or public URL.');
-
-    // Download the existing bytes once, then replace the same Storage object
-    // with identical bytes and the new Cache-Control setting.
-    const response = await fetch(publicUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`Could not download ${storagePath} (${response.status}).`);
-
-    const blob = await response.blob();
-    const { error } = await db.storage.from(bucketName).update(storagePath, blob, {
-        cacheControl: CACHE_TTL_SECONDS,
-        contentType: blob.type || 'application/octet-stream'
-    });
-    if (error) throw error;
-}
-
-async function migrateExistingPhotoCache(bucketName, records, statusElement, button) {
-    const jobs = new Map();
-    for (const item of records || []) {
-        if (item.path && item.url) jobs.set(item.path, item.url);
-    }
-
-    if (jobs.size === 0) {
-        statusElement.textContent = 'No existing photos found to update.';
-        return;
-    }
-
-    const approved = confirm(
-        `Update cache settings for ${jobs.size} existing photo(s) in ${bucketName}?\n\n` +
-        'The admin page will download and re-upload each photo to the same Storage path. ' +
-        'This one-time transfer may temporarily increase egress. ' +
-        'Database links and filenames will stay the same.'
-    );
-    if (!approved) return;
-
-    button.disabled = true;
-    let succeeded = 0;
-    const failures = [];
-    try {
-        for (const [path, url] of jobs.entries()) {
-            statusElement.textContent = `Updating ${succeeded + failures.length + 1} of ${jobs.size}: ${path}`;
-            try {
-                await refreshExistingPhotoCache(bucketName, path, url);
-                succeeded++;
-            } catch (error) {
-                failures.push(`${path}: ${error.message}`);
-            }
-        }
-        statusElement.textContent = `Finished: ${succeeded} updated, ${failures.length} failed.` +
-            (failures.length ? ` First error: ${failures[0]}` : ' All photos now have a 30-day browser cache setting.');
-    } finally {
-        button.disabled = false;
-    }
-}
-
-document.getElementById('migrate-news-cache-button').addEventListener('click', async () => {
-    const button = document.getElementById('migrate-news-cache-button');
-    const statusElement = document.getElementById('migrate-news-cache-status');
-    statusElement.textContent = 'Loading news photo records...';
-    const { data, error } = await db.from('news').select('image_url').not('image_url', 'is', null);
-    if (error) {
-        statusElement.textContent = 'Could not load news photos: ' + error.message;
-        return;
-    }
-    const records = (data || []).map(row => ({
-        url: row.image_url,
-        path: getStoragePathFromPublicUrl(row.image_url, 'news-images')
-    }));
-    await migrateExistingPhotoCache('news-images', records, statusElement, button);
-});
-
-document.getElementById('migrate-chapter-cache-button').addEventListener('click', async () => {
-    const button = document.getElementById('migrate-chapter-cache-button');
-    const statusElement = document.getElementById('migrate-chapter-cache-status');
-    statusElement.textContent = 'Loading chapter photo records...';
-    const { data, error } = await db.from('chapter_images').select('image_url, storage_path').not('image_url', 'is', null);
-    if (error) {
-        statusElement.textContent = 'Could not load chapter photos: ' + error.message;
-        return;
-    }
-    const records = (data || []).map(row => ({
-        url: row.image_url,
-        path: row.storage_path || getStoragePathFromPublicUrl(row.image_url, 'chapter-images')
-    }));
-    await migrateExistingPhotoCache('chapter-images', records, statusElement, button);
-});
 
 
 chapterForm.addEventListener('submit', async function(event) {
