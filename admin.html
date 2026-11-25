@@ -1276,6 +1276,29 @@
 
 
 
+        <!-- STATE PROFILE MANAGEMENT -->
+        <details class="admin-group" id="state-profile-group">
+            <summary><span>STATE PROFILE</span><span class="group-summary-hint">Update national details and upload the anthem</span></summary>
+            <div class="admin-group-content">
+                <div class="panel">
+                    <h2>EDIT STATE PROFILE</h2>
+                    <form id="state-profile-form">
+                        <label for="profile-population-input">Population</label>
+                        <input type="number" id="profile-population-input" min="0" step="1" required placeholder="Enter population">
+                        <label for="profile-area-input">Area (km²)</label>
+                        <input type="number" id="profile-area-input" min="0" step="0.01" required placeholder="Enter area in square kilometres">
+                        <label for="profile-anthem-title-input">Anthem title</label>
+                        <input type="text" id="profile-anthem-title-input" maxlength="200" placeholder="National Anthem">
+                        <label for="profile-anthem-input">National anthem (MP3)</label>
+                        <input type="file" id="profile-anthem-input" accept="audio/mpeg,.mp3">
+                        <div class="chapter-help">MP3 only, maximum 20 MB. Leave empty to keep the current anthem. A new upload replaces the previous anthem.</div>
+                        <div class="form-buttons"><button type="submit" id="save-state-profile-button">SAVE STATE PROFILE</button></div>
+                    </form>
+                    <div id="state-profile-admin-status" class="chapter-status" role="status"></div>
+                </div>
+            </div>
+        </details>
+
         <!-- ABOUT US KEY FIGURES MANAGEMENT -->
 
         <details class="admin-group" id="key-figures-group">
@@ -1484,6 +1507,14 @@ function moveEditorBelow(panel, item) {
 
 let editingChapterId = null;
 
+
+const stateProfileForm = document.getElementById('state-profile-form');
+const statePopulationInput = document.getElementById('profile-population-input');
+const stateAreaInput = document.getElementById('profile-area-input');
+const stateAnthemTitleInput = document.getElementById('profile-anthem-title-input');
+const stateAnthemInput = document.getElementById('profile-anthem-input');
+const stateProfileAdminStatus = document.getElementById('state-profile-admin-status');
+const saveStateProfileButton = document.getElementById('save-state-profile-button');
 
 const keyFigureForm = document.getElementById('key-figure-form');
 const keyFigureName = document.getElementById('key-figure-name');
@@ -1735,6 +1766,8 @@ async function checkAdmin() {
     loadAdminChapters();
 
     loadAdminKeyFigures();
+
+    loadAdminStateProfile();
 
     loadAdminMapArchive();
 
@@ -4462,6 +4495,65 @@ async function moveChapter(chapters, index, direction, button) {
 
 
 // ========================================
+// ========================================
+// STATE PROFILE MANAGEMENT
+// ========================================
+
+async function loadAdminStateProfile() {
+    stateProfileAdminStatus.textContent = 'Loading state profile...';
+    const { data, error } = await db.from('empire_profile').select('*').eq('id', 1).maybeSingle();
+    if (error) { stateProfileAdminStatus.textContent = 'Error: ' + error.message; return; }
+    if (data) {
+        statePopulationInput.value = data.population ?? '';
+        stateAreaInput.value = data.area_km2 ?? '';
+        stateAnthemTitleInput.value = data.anthem_title || '';
+        stateProfileAdminStatus.textContent = data.anthem_url ? 'Current anthem: uploaded. Select another MP3 to replace it.' : 'No anthem uploaded yet.';
+    } else {
+        stateProfileAdminStatus.textContent = 'Enter the figures and save to initialize the profile.';
+    }
+}
+
+stateProfileForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const population = Number(statePopulationInput.value);
+    const area = Number(stateAreaInput.value);
+    const anthemFile = stateAnthemInput.files[0];
+    if (!Number.isSafeInteger(population) || population < 0) { stateProfileAdminStatus.textContent = 'Enter a valid whole-number population.'; return; }
+    if (!Number.isFinite(area) || area < 0) { stateProfileAdminStatus.textContent = 'Enter a valid area.'; return; }
+    if (anthemFile && (!(/\.mp3$/i.test(anthemFile.name)) || (anthemFile.type && anthemFile.type !== 'audio/mpeg') || anthemFile.size > 20 * 1024 * 1024)) { stateProfileAdminStatus.textContent = 'Please select an MP3 file no larger than 20 MB.'; return; }
+    saveStateProfileButton.disabled = true;
+    stateProfileAdminStatus.textContent = 'Saving state profile...';
+    let uploadedPath = null;
+    try {
+        const { data: previous, error: readError } = await db.from('empire_profile').select('*').eq('id', 1).maybeSingle();
+        if (readError) throw readError;
+        let anthemUrl = previous?.anthem_url || null;
+        let anthemPath = previous?.anthem_path || null;
+        if (anthemFile) {
+            uploadedPath = `${crypto.randomUUID()}.mp3`;
+            const { error: uploadError } = await db.storage.from('empire-assets').upload(uploadedPath, anthemFile, { contentType: 'audio/mpeg', cacheControl: '31536000', upsert: false });
+            if (uploadError) throw uploadError;
+            const { data: publicData } = db.storage.from('empire-assets').getPublicUrl(uploadedPath);
+            anthemUrl = publicData.publicUrl;
+            anthemPath = uploadedPath;
+        }
+        const update = { id: 1, country_name: 'Kiryat Eliezer Empire', capital: 'Haifa', population, area_km2: area, anthem_title: stateAnthemTitleInput.value.trim() || 'National Anthem', anthem_url: anthemUrl, anthem_path: anthemPath, updated_at: new Date().toISOString() };
+        const { error: saveError } = await db.from('empire_profile').upsert(update, { onConflict: 'id' });
+        if (saveError) throw saveError;
+        if (anthemFile && previous?.anthem_path) {
+            const { error: removeError } = await db.storage.from('empire-assets').remove([previous.anthem_path]);
+            if (removeError) console.warn('Profile saved, but previous anthem cleanup failed:', removeError);
+        }
+        stateAnthemInput.value = '';
+        stateProfileAdminStatus.textContent = 'State profile saved successfully.';
+    } catch (error) {
+        console.error('State profile save error:', error);
+        if (uploadedPath) await db.storage.from('empire-assets').remove([uploadedPath]);
+        stateProfileAdminStatus.textContent = 'Error: ' + error.message;
+    } finally { saveStateProfileButton.disabled = false; }
+});
+
+
 // ABOUT US: KEY FIGURES MANAGEMENT
 // ========================================
 

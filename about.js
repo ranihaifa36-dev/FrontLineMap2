@@ -1,3 +1,12 @@
+// Cache the permanent empire flag locally after its first successful download.
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(error => {
+            console.warn('Flag cache service worker could not be registered:', error);
+        });
+    });
+}
+
 // ========================================
 // SUPABASE CONFIGURATION
 // ========================================
@@ -40,17 +49,20 @@ const historySection =
 
 const keyFiguresSection =
     document.getElementById('key-figures-section');
+const stateProfileSection = document.getElementById('state-profile-section');
 
 const historyTab =
     document.getElementById('history-tab');
 
 const keyFiguresTab =
     document.getElementById('key-figures-tab');
+const stateProfileTab = document.getElementById('state-profile-tab');
 
 const heroSubtitle =
     document.querySelector('.hero-subtitle');
 
 let keyFiguresLoaded = false;
+let stateProfileLoaded = false;
 
 const pagination =
     document.getElementById('chapters-pagination');
@@ -446,30 +458,57 @@ nextButton.addEventListener('click', function() {
 // ========================================
 
 function activateAboutTab(tabName) {
-
     const showHistory = tabName === 'history';
-
+    const showKeyFigures = tabName === 'key-figures';
     historySection.hidden = !showHistory;
-    keyFiguresSection.hidden = showHistory;
+    keyFiguresSection.hidden = !showKeyFigures;
+    stateProfileSection.hidden = tabName !== 'state-profile';
 
     historyTab.classList.toggle('active', showHistory);
-    keyFiguresTab.classList.toggle('active', !showHistory);
+    keyFiguresTab.classList.toggle('active', showKeyFigures);
+    stateProfileTab.classList.toggle('active', tabName === 'state-profile');
 
     heroSubtitle.textContent = showHistory
         ? 'THE HISTORY OF KIRYAT ELIEZER EMPIRE'
-        : 'IMPORTANT PEOPLE OF THE KIRYAT ELIEZER EMPIRE';
+        : showKeyFigures
+            ? 'IMPORTANT PEOPLE OF THE KIRYAT ELIEZER EMPIRE'
+            : 'OFFICIAL PROFILE OF THE KIRYAT ELIEZER EMPIRE';
 
-    if (!showHistory && !keyFiguresLoaded) {
-        loadKeyFigures();
-    }
+    if (showKeyFigures && !keyFiguresLoaded) loadKeyFigures();
+    if (tabName === 'state-profile' && !stateProfileLoaded) loadStateProfile();
 }
 
 historyTab.addEventListener('click', function() {
     activateAboutTab('history');
 });
 
+async function loadStateProfile() {
+    const status = document.getElementById('state-profile-status');
+    const content = document.getElementById('state-profile-content');
+    if (stateProfileLoaded) return;
+    status.textContent = 'Loading state profile...';
+    const { data, error } = await db.from('empire_profile').select('*').eq('id', 1).maybeSingle();
+    if (error) { status.textContent = 'Could not load state profile: ' + error.message; return; }
+    if (!data) { status.textContent = 'The state profile has not been configured yet.'; return; }
+    document.getElementById('profile-country-name').textContent = data.country_name || 'Kiryat Eliezer Empire';
+    document.getElementById('profile-capital').textContent = data.capital || 'Haifa';
+    document.getElementById('profile-population').textContent = data.population == null ? '—' : Number(data.population).toLocaleString('en-US');
+    document.getElementById('profile-area').textContent = data.area_km2 == null ? '—' : Number(data.area_km2).toLocaleString('en-US') + ' km²';
+    const audio = document.getElementById('profile-anthem-audio');
+    const anthemTitle = document.getElementById('profile-anthem-title');
+    if (data.anthem_url) { audio.src = data.anthem_url; audio.hidden = false; anthemTitle.textContent = data.anthem_title || 'National Anthem'; }
+    else { audio.hidden = true; anthemTitle.textContent = 'The national anthem has not been uploaded yet.'; }
+    status.hidden = true;
+    content.hidden = false;
+    stateProfileLoaded = true;
+}
+
 keyFiguresTab.addEventListener('click', function() {
     activateAboutTab('key-figures');
+});
+
+stateProfileTab.addEventListener('click', function() {
+    activateAboutTab('state-profile');
 });
 
 

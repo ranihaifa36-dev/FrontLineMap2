@@ -106,6 +106,7 @@
             z-index: 4000;
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 8px;
             padding: 13px 15px;
             background: #1c2229;
@@ -258,6 +259,26 @@
             font-size: 11px;
             letter-spacing: 1px;
         }
+
+        /* STATE PROFILE */
+        #state-profile-section { max-width: 950px; margin: 0 auto; }
+        .profile-identity { display:flex; align-items:center; gap:28px; padding:26px; background:#20262d; border:1px solid #343b44; border-radius:4px; margin-bottom:18px; }
+        .profile-flag { width:min(38%, 270px); aspect-ratio: 3 / 2; object-fit:contain; background:#15191e; border:1px solid #48525e; padding:8px; }
+        .profile-identity h3 { font-size:23px; letter-spacing:1px; line-height:1.4; }
+        .profile-block { background:#20262d; border:1px solid #343b44; border-radius:4px; padding:24px 26px; margin-bottom:18px; }
+        .profile-block h3 { color:#8296aa; font-size:11px; letter-spacing:2px; margin-bottom:18px; }
+        .profile-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 28px; }
+        .profile-fact { padding:13px 0; border-bottom:1px solid #343b44; }
+        .profile-fact span { display:block; color:#82909e; font-size:10px; letter-spacing:1.2px; margin-bottom:7px; text-transform:uppercase; }
+        .profile-fact strong { font-size:16px; font-weight:600; overflow-wrap:anywhere; }
+        .profile-languages { color:#c2cbd4; font-size:14px; line-height:1.8; }
+        .anthem-player { width:100%; margin-top:4px; }
+        .anthem-title { color:#c2cbd4; font-size:13px; margin-bottom:12px; }
+        .anthem-lyrics { margin-top:25px; padding:24px 26px; background:linear-gradient(145deg,#252e38,#1b222a); border:1px solid #3b4652; border-left:3px solid #8296aa; border-radius:4px; }
+        .anthem-lyrics h4 { color:#8296aa; font-size:11px; letter-spacing:2px; margin-bottom:18px; }
+        .anthem-lyrics-text { color:#cbd4dd; font-size:14px; line-height:1.95; white-space:pre-line; text-align:center; font-style:italic; }
+        #state-profile-status { color:#9ba8b5; text-align:center; padding:35px 10px; font-size:13px; }
+        @media(max-width:600px) { .profile-identity { flex-direction:column; text-align:center; gap:16px; } .profile-flag { width:min(80%,270px); } .profile-identity h3 { font-size:19px; } .profile-facts { grid-template-columns:1fr; } .profile-block { padding:20px; } }
 
         /* KEY FIGURES */
 
@@ -490,9 +511,8 @@
             HISTORY
         </button>
 
-        <button class="about-tab" type="button" id="key-figures-tab">
-            KEY FIGURES
-        </button>
+        <button class="about-tab" type="button" id="key-figures-tab">KEY FIGURES</button>
+        <button class="about-tab" type="button" id="state-profile-tab">STATE PROFILE</button>
     </nav>
 
     <main>
@@ -522,6 +542,64 @@
                 </button>
             </div>
 
+        </section>
+
+        <section id="state-profile-section" hidden>
+            <div class="section-heading">
+                <h2>STATE PROFILE</h2>
+                <p>OFFICIAL PROFILE OF THE KIRYAT ELIEZER EMPIRE</p>
+            </div>
+            <div id="state-profile-status">Loading state profile...</div>
+            <div id="state-profile-content" hidden>
+                <div class="profile-identity">
+                    <img class="profile-flag" src="empire-flag.webp" alt="Flag of the Kiryat Eliezer Empire" loading="eager" decoding="async">
+                    <h3 id="profile-country-name">Kiryat Eliezer Empire</h3>
+                </div>
+                <div class="profile-block">
+                    <h3>GEOGRAPHY &amp; DEMOGRAPHICS</h3>
+                    <div class="profile-facts">
+                        <div class="profile-fact"><span>Capital</span><strong id="profile-capital">Haifa</strong></div>
+                        <div class="profile-fact"><span>Population</span><strong id="profile-population">—</strong></div>
+                        <div class="profile-fact"><span>Area</span><strong id="profile-area">—</strong></div>
+                    </div>
+                </div>
+                <div class="profile-block">
+                    <h3>OFFICIAL LANGUAGES</h3>
+                    <p class="profile-languages">Hebrew · Russian · English</p>
+                </div>
+                <div class="profile-block">
+                    <h3>NATIONAL ANTHEM</h3>
+                    <div class="anthem-title" id="profile-anthem-title">National Anthem</div>
+                    <audio id="profile-anthem-audio" class="anthem-player" controls preload="none"></audio>
+                    <div class="anthem-lyrics">
+                        <h4>NATIONAL ANTHEM LYRICS</h4>
+                        <p class="anthem-lyrics-text">Кирьят Элиэзер — империя моя,
+На склонах Кармеля, где сила и судьба,
+Где море шумит, как вечный призыв,
+Где ветер свободы могуч и жив.
+
+Средь птиц в небесах и зелёных долин
+Стоит моя крепость — я с нею един,
+Я вырос здесь, дышал этим днём,
+Кирьят Элиэзер навеки мой дом.
+
+О, Кирьят Элиэзер — сила моя,
+Ты кровь моя, вера, судьба и земля!
+За тебя я стою, за тебя я в бою,
+Я жизнь за тебя без сомнений отдам!
+
+Здесь море и небо сливаются в свет,
+И нету роднее этих мест,
+Где птицы свободно над нами кружат,
+Где ветры истории гордо звучат.
+
+Если придёт тьма — я не отступлю,
+За дом, за родных я стеной постою,
+В груди моей пламя, и дух не сломить,
+Кирьят Элиэзер — ты будешь жить!</p>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="key-figures-section" hidden>
