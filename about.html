@@ -259,24 +259,101 @@
             letter-spacing: 1px;
         }
 
-        /* FUTURE SECTIONS */
+        /* KEY FIGURES */
 
-        #future-section {
-            display: none;
+        #key-figures {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        #key-figures-status {
             text-align: center;
-            padding: 65px 20px;
-            color: #82909e;
-            background: #20262d;
-            border: 1px solid #343b44;
-            border-radius: 4px;
+            color: #9ba8b5;
+            padding: 40px 15px;
+            font-size: 13px;
         }
 
-        #future-section h2 {
-            color: #e8edf2;
-            font-size: 19px;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
+        .key-figure-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 18px 4px;
+            border-bottom: 1px solid #343b44;
         }
+
+        .key-figure-card:first-child {
+            border-top: 1px solid #343b44;
+        }
+
+        .key-figure-card img {
+            display: block;
+            flex: 0 0 78px;
+            width: 78px;
+            height: 104px;
+            object-fit: cover;
+            object-position: center;
+            background: #20262d;
+            border: 1px solid #48525e;
+            border-radius: 2px;
+            cursor: zoom-in;
+        }
+
+        .key-figure-card-content {
+            flex: 1;
+            min-width: 0;
+            padding: 2px 0 0;
+        }
+
+        .key-figure-card h3 {
+            color: #e8edf2;
+            font-size: 16px;
+            letter-spacing: 0.4px;
+            margin-bottom: 6px;
+            overflow-wrap: anywhere;
+        }
+
+        .key-figure-position {
+            color: #8296aa;
+            font-size: 10px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .key-figure-biography {
+            color: #c2cbd4;
+            font-size: 13px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 520px) {
+            .key-figure-card {
+                gap: 13px;
+                padding: 15px 0;
+            }
+
+            .key-figure-card img {
+                flex-basis: 68px;
+                width: 68px;
+                height: 91px;
+            }
+
+            .key-figure-card h3 {
+                font-size: 14px;
+            }
+
+            .key-figure-biography {
+                font-size: 12px;
+            }
+        }
+
+        /* FUTURE SECTIONS */
 
         footer {
             border-top: 1px solid #343b44;
@@ -413,8 +490,8 @@
             HISTORY
         </button>
 
-        <button class="about-tab" type="button" disabled title="Coming soon">
-            MORE SECTIONS COMING SOON
+        <button class="about-tab" type="button" id="key-figures-tab">
+            KEY FIGURES
         </button>
     </nav>
 
@@ -447,9 +524,17 @@
 
         </section>
 
-        <section id="future-section">
-            <h2>MORE SECTIONS COMING SOON</h2>
-            <p>Additional information about the empire will appear here in the future.</p>
+        <section id="key-figures-section" hidden>
+
+            <div class="section-heading">
+                <h2>KEY FIGURES</h2>
+                <p>IMPORTANT PEOPLE OF THE KIRYAT ELIEZER EMPIRE</p>
+            </div>
+
+            <div id="key-figures">
+                <div id="key-figures-status">Loading key figures...</div>
+            </div>
+
         </section>
 
     </main>

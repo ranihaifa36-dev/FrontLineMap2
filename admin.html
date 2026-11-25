@@ -446,6 +446,34 @@
 
 
 
+        /* KEY FIGURES MANAGEMENT */
+
+        .key-figure-admin-photo {
+            width: 110px;
+            height: 125px;
+            object-fit: cover;
+            background: #151a20;
+            border: 1px solid #3b4652;
+            border-radius: 3px;
+            margin: 8px 0 12px;
+            display: block;
+        }
+
+        .key-figure-admin-item .key-figure-admin-position {
+            color: #8296aa;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin: 5px 0 9px;
+        }
+
+        .key-figure-admin-item .key-figure-admin-biography {
+            color: #9ba8b5;
+            font-size: 11px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+
         /* ABOUT US CHAPTER MANAGEMENT */
 
 
@@ -1248,6 +1276,57 @@
 
 
 
+        <!-- ABOUT US KEY FIGURES MANAGEMENT -->
+
+        <details class="admin-group" id="key-figures-group">
+
+            <summary>
+                <span>KEY FIGURES</span>
+                <span class="group-summary-hint">Create, edit, delete and reorder important people</span>
+            </summary>
+
+            <div class="admin-group-content">
+
+                <div class="panel">
+                    <h2 id="key-figure-form-heading">CREATE KEY FIGURE</h2>
+
+                    <form id="key-figure-form">
+
+                        <label for="key-figure-name">Full name</label>
+                        <input type="text" id="key-figure-name" maxlength="200" required placeholder="Enter full name...">
+
+                        <label for="key-figure-position">Position / role</label>
+                        <input type="text" id="key-figure-position" maxlength="200" placeholder="Enter position or role...">
+
+                        <label for="key-figure-biography">Biography</label>
+                        <textarea id="key-figure-biography" maxlength="30000" placeholder="Write the person's biography..."></textarea>
+
+                        <label for="key-figure-image">Portrait photo</label>
+                        <input type="file" id="key-figure-image" accept="image/jpeg,image/png,image/webp,image/gif">
+
+                        <div class="chapter-help">
+                            Select one portrait photo. The original file must be 8 MB or smaller. When editing, leave this empty to keep the current photo.
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="submit" id="save-key-figure-button">PUBLISH KEY FIGURE</button>
+                            <button type="button" class="secondary" id="cancel-key-figure-edit" style="display:none">CANCEL EDIT</button>
+                        </div>
+                    </form>
+
+                    <div id="key-figure-status" class="chapter-status" role="status"></div>
+                </div>
+
+                <div class="panel">
+                    <h2>PUBLISHED KEY FIGURES</h2>
+                    <div id="admin-key-figures-list">Loading key figures...</div>
+                </div>
+
+            </div>
+        </details>
+
+
+
         <button class="danger" id="logout-button">LOG OUT</button>
 
 
@@ -1406,6 +1485,22 @@ function moveEditorBelow(panel, item) {
 let editingChapterId = null;
 
 
+const keyFigureForm = document.getElementById('key-figure-form');
+const keyFigureName = document.getElementById('key-figure-name');
+const keyFigurePosition = document.getElementById('key-figure-position');
+const keyFigureBiography = document.getElementById('key-figure-biography');
+const keyFigureImageInput = document.getElementById('key-figure-image');
+const keyFigureStatus = document.getElementById('key-figure-status');
+const adminKeyFiguresList = document.getElementById('admin-key-figures-list');
+const saveKeyFigureButton = document.getElementById('save-key-figure-button');
+const cancelKeyFigureEdit = document.getElementById('cancel-key-figure-edit');
+const keyFigureEditorPanel = keyFigureForm.closest('.panel');
+const keyFigureEditorHome = document.createComment('key figure editor home');
+keyFigureEditorPanel.parentNode.insertBefore(keyFigureEditorHome, keyFigureEditorPanel);
+let editingKeyFigureId = null;
+let editingKeyFigureExistingImage = null;
+
+
 
 const mapArchiveForm = document.getElementById('map-archive-form');
 
@@ -1516,6 +1611,86 @@ function applyShowMore(container, itemSelector, limit = 5) {
 
 // ========================================
 
+let adminSessionActive = false;
+let handlingSessionEnd = false;
+
+function showAdminLogin(message = '') {
+    adminSessionActive = false;
+    loginSection.style.display = 'block';
+    dashboard.style.display = 'none';
+    loginStatus.textContent = message;
+    loginForm.reset();
+}
+
+async function endAdminSession(message) {
+    if (handlingSessionEnd) return;
+
+    handlingSessionEnd = true;
+
+    try {
+        // Clear this browser's session without affecting any other sessions.
+        await db.auth.signOut({ scope: 'local' });
+    } catch (error) {
+        console.error('Could not clear the local admin session:', error);
+    }
+
+    showAdminLogin(message);
+    handlingSessionEnd = false;
+}
+
+// React to password/account changes and sessions revoked by Supabase.
+// Defer auth calls so they do not run inside Supabase's auth callback lock.
+db.auth.onAuthStateChange((event) => {
+    if (!adminSessionActive) return;
+
+    if (event === 'USER_UPDATED') {
+        setTimeout(() => {
+            endAdminSession(
+                'Your account details or password have changed. Please log in again.'
+            );
+        }, 0);
+    } else if (event === 'SIGNED_OUT') {
+        setTimeout(() => {
+            showAdminLogin(
+                'Your session has ended. Please log in again.'
+            );
+        }, 0);
+    }
+});
+
+// If the password was changed from another tab/device, Supabase revokes
+// the other sessions. Check the refresh token when this tab becomes active.
+async function verifyAdminSessionAfterReturn() {
+    if (!adminSessionActive || document.visibilityState === 'hidden') return;
+
+    const { data, error } = await db.auth.refreshSession();
+
+    if (data.session && data.session.user.id === ADMIN_UID) {
+        return;
+    }
+
+    // Only force logout when Supabase confirms that the session is gone or
+    // the refresh token is invalid. Temporary network errors should not log
+    // the administrator out.
+    const { data: currentData } = await db.auth.getSession();
+    const invalidRefreshToken = error &&
+        (error.status === 400 || error.status === 401 ||
+         /refresh token|session not found|session missing/i.test(error.message || ''));
+
+    if (!currentData.session || invalidRefreshToken ||
+        currentData.session.user.id !== ADMIN_UID) {
+        await endAdminSession(
+            'Your password was changed or your session expired. Please log in again.'
+        );
+    }
+}
+
+window.addEventListener('focus', verifyAdminSessionAfterReturn);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        verifyAdminSessionAfterReturn();
+    }
+});
 
 
 async function checkAdmin() {
@@ -1548,6 +1723,7 @@ async function checkAdmin() {
 
 
 
+    adminSessionActive = true;
     loginSection.style.display = 'none';
 
     dashboard.style.display = 'block';
@@ -1557,6 +1733,8 @@ async function checkAdmin() {
     loadAdminNews();
 
     loadAdminChapters();
+
+    loadAdminKeyFigures();
 
     loadAdminMapArchive();
 
@@ -1642,6 +1820,7 @@ document.getElementById('logout-button')
 
     .addEventListener('click', async function() {
 
+        adminSessionActive = false;
         await db.auth.signOut();
 
         location.reload();
@@ -4278,6 +4457,361 @@ async function moveChapter(chapters, index, direction, button) {
 
 
 
+
+
+
+
+// ========================================
+// ABOUT US: KEY FIGURES MANAGEMENT
+// ========================================
+
+function resetKeyFigureForm() {
+    restoreEditorPanel(keyFigureEditorPanel, keyFigureEditorHome);
+    keyFigureForm.reset();
+    editingKeyFigureId = null;
+    editingKeyFigureExistingImage = null;
+
+    document.getElementById('key-figure-form-heading').textContent = 'CREATE KEY FIGURE';
+    saveKeyFigureButton.textContent = 'PUBLISH KEY FIGURE';
+    cancelKeyFigureEdit.style.display = 'none';
+    keyFigureStatus.textContent = '';
+}
+
+cancelKeyFigureEdit.addEventListener('click', resetKeyFigureForm);
+
+
+async function uploadKeyFigureImage(file) {
+
+    const optimizedFile = await optimizeImage(file);
+    const extension = optimizedFile.name.includes('.')
+        ? optimizedFile.name.split('.').pop().toLowerCase()
+        : 'webp';
+    const storagePath = `${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await db.storage
+        .from('key-figures')
+        .upload(storagePath, optimizedFile, {
+            cacheControl: '2592000',
+            upsert: false,
+            contentType: optimizedFile.type || 'image/webp'
+        });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = db.storage
+        .from('key-figures')
+        .getPublicUrl(storagePath);
+
+    return {
+        image_url: data.publicUrl,
+        storage_path: storagePath
+    };
+}
+
+
+keyFigureForm.addEventListener('submit', async function(event) {
+
+    event.preventDefault();
+
+    const name = keyFigureName.value.trim();
+    const position = keyFigurePosition.value.trim();
+    const biography = keyFigureBiography.value.trim();
+    const file = keyFigureImageInput.files && keyFigureImageInput.files[0];
+
+    if (!name) {
+        keyFigureStatus.textContent = "Please enter the person's full name.";
+        return;
+    }
+
+    if (file && (!file.type.startsWith('image/') || file.size > 8 * 1024 * 1024)) {
+        keyFigureStatus.textContent = 'Please select a valid image no larger than 8 MB.';
+        return;
+    }
+
+    if (!editingKeyFigureId && !file) {
+        keyFigureStatus.textContent = 'Please select a portrait photo.';
+        return;
+    }
+
+    saveKeyFigureButton.disabled = true;
+    keyFigureStatus.textContent = 'Saving key figure...';
+
+    let uploadedImage = null;
+
+    try {
+        if (file) {
+            uploadedImage = await uploadKeyFigureImage(file);
+        }
+
+        if (editingKeyFigureId) {
+            const updateData = { name, position, biography };
+            if (uploadedImage) {
+                updateData.image_url = uploadedImage.image_url;
+                updateData.storage_path = uploadedImage.storage_path;
+            }
+
+            const { error } = await db
+                .from('key_figures')
+                .update(updateData)
+                .eq('id', editingKeyFigureId);
+
+            if (error) throw error;
+
+            // Remove the previous image only after the database update succeeds.
+            if (uploadedImage && editingKeyFigureExistingImage?.storage_path) {
+                const { error: cleanupError } = await db.storage
+                    .from('key-figures')
+                    .remove([editingKeyFigureExistingImage.storage_path]);
+                if (cleanupError) {
+                    console.warn('Updated figure, but old portrait cleanup failed:', cleanupError);
+                }
+            }
+
+        } else {
+            const { data: existingFigures, error: orderError } = await db
+                .from('key_figures')
+                .select('sort_order')
+                .order('sort_order', { ascending: false })
+                .limit(1);
+
+            if (orderError) throw orderError;
+
+            const nextOrder = existingFigures && existingFigures.length
+                ? (existingFigures[0].sort_order || 0) + 1
+                : 0;
+
+            const { error } = await db
+                .from('key_figures')
+                .insert({
+                    name,
+                    position,
+                    biography,
+                    image_url: uploadedImage.image_url,
+                    storage_path: uploadedImage.storage_path,
+                    sort_order: nextOrder
+                });
+
+            if (error) throw error;
+        }
+
+        resetKeyFigureForm();
+        await loadAdminKeyFigures();
+
+    } catch (error) {
+        console.error('Key figure save error:', error);
+
+        // If a new image was uploaded but the database operation failed, remove the orphaned file.
+        if (uploadedImage?.storage_path) {
+            const { error: cleanupError } = await db.storage
+                .from('key-figures')
+                .remove([uploadedImage.storage_path]);
+            if (cleanupError) console.warn('Could not clean up uploaded portrait:', cleanupError);
+        }
+
+        keyFigureStatus.textContent = 'Error: ' + error.message;
+
+    } finally {
+        saveKeyFigureButton.disabled = false;
+    }
+});
+
+
+async function loadAdminKeyFigures() {
+
+    const previousScrollY = window.scrollY;
+    restoreEditorPanel(keyFigureEditorPanel, keyFigureEditorHome);
+
+    if (!adminKeyFiguresList.hasChildNodes()) {
+        adminKeyFiguresList.textContent = 'Loading key figures...';
+    }
+
+    try {
+        const { data: figures, error } = await db
+            .from('key_figures')
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        renderAdminKeyFigures(figures || []);
+        window.scrollTo(0, previousScrollY);
+
+    } catch (error) {
+        console.error('Error loading key figures:', error);
+        adminKeyFiguresList.textContent = 'Could not load key figures: ' + error.message;
+    }
+}
+
+
+function renderAdminKeyFigures(figures) {
+
+    adminKeyFiguresList.replaceChildren();
+
+    if (!figures.length) {
+        adminKeyFiguresList.textContent = 'No key figures published yet.';
+        return;
+    }
+
+    figures.forEach((figure, index) => {
+
+        const item = document.createElement('div');
+        item.className = 'chapter-admin-item key-figure-admin-item';
+        item.dataset.keyFigureId = figure.id;
+
+        const title = document.createElement('h3');
+        title.textContent = `${String(index + 1).padStart(2, '0')} — ${figure.name}`;
+        item.appendChild(title);
+
+        if (figure.position) {
+            const position = document.createElement('div');
+            position.className = 'key-figure-admin-position';
+            position.textContent = figure.position;
+            item.appendChild(position);
+        }
+
+        if (figure.image_url) {
+            const image = document.createElement('img');
+            image.className = 'key-figure-admin-photo';
+            image.src = figure.image_url;
+            image.alt = figure.name;
+            image.loading = 'lazy';
+            item.appendChild(image);
+        }
+
+        if (figure.biography) {
+            const biography = document.createElement('p');
+            biography.className = 'key-figure-admin-biography';
+            biography.textContent = figure.biography.length > 240
+                ? figure.biography.slice(0, 240) + '...'
+                : figure.biography;
+            item.appendChild(biography);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'chapter-admin-actions';
+
+        const editButton = document.createElement('button');
+        editButton.className = 'secondary';
+        editButton.textContent = 'EDIT';
+        editButton.addEventListener('click', function() {
+            editingKeyFigureId = figure.id;
+            editingKeyFigureExistingImage = {
+                image_url: figure.image_url,
+                storage_path: figure.storage_path
+            };
+
+            keyFigureName.value = figure.name || '';
+            keyFigurePosition.value = figure.position || '';
+            keyFigureBiography.value = figure.biography || '';
+            keyFigureImageInput.value = '';
+
+            document.getElementById('key-figure-form-heading').textContent = 'EDIT KEY FIGURE';
+            saveKeyFigureButton.textContent = 'SAVE CHANGES';
+            cancelKeyFigureEdit.style.display = 'inline-block';
+            keyFigureStatus.textContent = 'Leave the portrait field empty to keep the existing photo.';
+            moveEditorBelow(keyFigureEditorPanel, item);
+        });
+
+        const upButton = document.createElement('button');
+        upButton.className = 'secondary';
+        upButton.textContent = 'MOVE UP';
+        upButton.disabled = index === 0;
+        upButton.addEventListener('click', async function() {
+            await moveKeyFigure(figures, index, -1, upButton);
+        });
+
+        const downButton = document.createElement('button');
+        downButton.className = 'secondary';
+        downButton.textContent = 'MOVE DOWN';
+        downButton.disabled = index === figures.length - 1;
+        downButton.addEventListener('click', async function() {
+            await moveKeyFigure(figures, index, 1, downButton);
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'danger';
+        deleteButton.textContent = 'DELETE';
+        deleteButton.addEventListener('click', async function() {
+            if (!confirm(`Delete key figure "${figure.name}"? This cannot be undone.`)) return;
+
+            deleteButton.disabled = true;
+            try {
+                const { error: deleteError } = await db
+                    .from('key_figures')
+                    .delete()
+                    .eq('id', figure.id);
+
+                if (deleteError) throw deleteError;
+
+                if (figure.storage_path) {
+                    const { error: storageError } = await db.storage
+                        .from('key-figures')
+                        .remove([figure.storage_path]);
+                    if (storageError) {
+                        console.warn('Key figure deleted, but portrait cleanup failed:', storageError);
+                    }
+                }
+
+                if (editingKeyFigureId === figure.id) resetKeyFigureForm();
+                await loadAdminKeyFigures();
+
+            } catch (error) {
+                alert('Could not delete key figure: ' + error.message);
+                deleteButton.disabled = false;
+            }
+        });
+
+        actions.appendChild(editButton);
+        actions.appendChild(upButton);
+        actions.appendChild(downButton);
+        actions.appendChild(deleteButton);
+        item.appendChild(actions);
+        adminKeyFiguresList.appendChild(item);
+
+    });
+
+    if (editingKeyFigureId !== null) {
+        const editingItem = adminKeyFiguresList.querySelector(
+            `[data-key-figure-id="${CSS.escape(String(editingKeyFigureId))}"]`
+        );
+        if (editingItem) editingItem.appendChild(keyFigureEditorPanel);
+    }
+
+    applyShowMore(adminKeyFiguresList, '.key-figure-admin-item', 5);
+}
+
+
+async function moveKeyFigure(figures, index, direction, button) {
+
+    const otherIndex = index + direction;
+    if (otherIndex < 0 || otherIndex >= figures.length) return;
+
+    button.disabled = true;
+
+    const current = figures[index];
+    const other = figures[otherIndex];
+
+    try {
+        const { error: firstError } = await db
+            .from('key_figures')
+            .update({ sort_order: other.sort_order })
+            .eq('id', current.id);
+        if (firstError) throw firstError;
+
+        const { error: secondError } = await db
+            .from('key_figures')
+            .update({ sort_order: current.sort_order })
+            .eq('id', other.id);
+        if (secondError) throw secondError;
+
+        await loadAdminKeyFigures();
+
+    } catch (error) {
+        alert('Could not change key figure order: ' + error.message);
+        await loadAdminKeyFigures();
+    }
+}
 
 
 // ========================================

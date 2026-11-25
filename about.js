@@ -1,4 +1,3 @@
-
 // ========================================
 // SUPABASE CONFIGURATION
 // ========================================
@@ -32,6 +31,26 @@ let isLoadingChapters = false;
 
 const chaptersContainer =
     document.getElementById('chapters');
+
+const keyFiguresContainer =
+    document.getElementById('key-figures');
+
+const historySection =
+    document.getElementById('history-section');
+
+const keyFiguresSection =
+    document.getElementById('key-figures-section');
+
+const historyTab =
+    document.getElementById('history-tab');
+
+const keyFiguresTab =
+    document.getElementById('key-figures-tab');
+
+const heroSubtitle =
+    document.querySelector('.hero-subtitle');
+
+let keyFiguresLoaded = false;
 
 const pagination =
     document.getElementById('chapters-pagination');
@@ -418,6 +437,136 @@ nextButton.addEventListener('click', function() {
     }
 
 });
+
+
+
+
+// ========================================
+// ABOUT US SECTION TABS
+// ========================================
+
+function activateAboutTab(tabName) {
+
+    const showHistory = tabName === 'history';
+
+    historySection.hidden = !showHistory;
+    keyFiguresSection.hidden = showHistory;
+
+    historyTab.classList.toggle('active', showHistory);
+    keyFiguresTab.classList.toggle('active', !showHistory);
+
+    heroSubtitle.textContent = showHistory
+        ? 'THE HISTORY OF KIRYAT ELIEZER EMPIRE'
+        : 'IMPORTANT PEOPLE OF THE KIRYAT ELIEZER EMPIRE';
+
+    if (!showHistory && !keyFiguresLoaded) {
+        loadKeyFigures();
+    }
+}
+
+historyTab.addEventListener('click', function() {
+    activateAboutTab('history');
+});
+
+keyFiguresTab.addEventListener('click', function() {
+    activateAboutTab('key-figures');
+});
+
+
+// ========================================
+// DISPLAY KEY FIGURES
+// ========================================
+
+function showKeyFiguresStatus(message) {
+    keyFiguresContainer.replaceChildren();
+
+    const status = document.createElement('div');
+    status.id = 'key-figures-status';
+    status.textContent = message;
+    keyFiguresContainer.appendChild(status);
+}
+
+function displayKeyFigures(figures) {
+
+    keyFiguresContainer.replaceChildren();
+
+    if (!figures || figures.length === 0) {
+        showKeyFiguresStatus('No key figures have been published yet.');
+        return;
+    }
+
+    figures.forEach(figure => {
+
+        const card = document.createElement('article');
+        card.className = 'key-figure-card';
+
+        if (figure.image_url) {
+            const image = document.createElement('img');
+            image.src = figure.image_url;
+            image.alt = figure.name || 'Key figure portrait';
+            image.loading = 'lazy';
+            image.addEventListener('click', function() {
+                openImage(figure.image_url, figure.name || 'Key figure portrait');
+            });
+            image.addEventListener('error', function() {
+                image.remove();
+            });
+            card.appendChild(image);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'key-figure-card-content';
+
+        const name = document.createElement('h3');
+        name.textContent = figure.name || 'Unnamed figure';
+        content.appendChild(name);
+
+        if (figure.position) {
+            const position = document.createElement('div');
+            position.className = 'key-figure-position';
+            position.textContent = figure.position;
+            content.appendChild(position);
+        }
+
+        if (figure.biography) {
+            const biography = document.createElement('div');
+            biography.className = 'key-figure-biography';
+            biography.textContent = figure.biography;
+            content.appendChild(biography);
+        }
+
+        card.appendChild(content);
+        keyFiguresContainer.appendChild(card);
+
+    });
+}
+
+
+// ========================================
+// LOAD KEY FIGURES FROM SUPABASE
+// ========================================
+
+async function loadKeyFigures() {
+
+    showKeyFiguresStatus('Loading key figures...');
+
+    try {
+        const { data: figures, error } = await db
+            .from('key_figures')
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        displayKeyFigures(figures || []);
+        keyFiguresLoaded = true;
+
+    } catch (error) {
+        console.error('Error loading key figures:', error);
+        showKeyFiguresStatus('Could not load key figures: ' + error.message);
+    }
+}
 
 
 // ========================================
